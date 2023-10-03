@@ -5,6 +5,10 @@ h_source 'util'
 H_ANYSH_VERSION='1.0.0'
 H_FEATURES_DIR="$H_ANYSH_DIR/features"
 
+h_is_anysh_sourced() {
+  return 0
+}
+
 h_anysh_get_groups() {
   find "$H_FEATURES_DIR" -depth 1 -type d -exec basename {} +
 }

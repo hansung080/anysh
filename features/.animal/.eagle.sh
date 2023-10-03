@@ -2,10 +2,10 @@
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
-h_is_docker_sourced() {
+h_is_eagle_sourced() {
   return 0
 }
 
-d_docker_root() {
-  h_echo 'docker in root'
+a_eagle() {
+  h_echo 'eagle'
 }

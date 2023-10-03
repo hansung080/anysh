@@ -2,6 +2,10 @@
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
+h_is_make_sourced() {
+  return 0
+}
+
 h_make_check_args() {
   local project="$1"
   local type="$2"

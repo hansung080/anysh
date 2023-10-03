@@ -2,6 +2,10 @@
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
-u_test_user() {
-  h_echo 'user test'
+h_is_cat_sourced() {
+  return 0
+}
+
+a_cat() {
+  h_echo 'cat'
 }

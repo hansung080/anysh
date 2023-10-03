@@ -7,6 +7,10 @@ H_GREEN=$'\033[0;32m'
 H_YELLOW=$'\033[0;33m'
 H_BLUE=$'\033[0;34m'
 
+h_is_util_sourced() {
+  return 0
+}
+
 h_is_debug() {
   [ -n "$H_DEBUG" ]
 }
@@ -35,13 +39,24 @@ h_echo() {
   echo -e "$@"
 }
 
-h_error() {
-  [[ "$1" == '-t' ]] && { >&2 h_echo -n "${H_RED_BOLD}error${H_RESET}: "; shift; }
-  >&2 h_echo "$@"
+h_debug() {
+  h_is_debug || return 0
+  [[ "$1" == '-t' ]] && { h_echo -n "${H_GREEN}debug${H_RESET}: "; shift; }
+  h_echo "$@"
+}
+
+h_info() {
+  [[ "$1" == '-t' ]] && { h_echo -n "${H_BLUE}info${H_RESET}: "; shift; }
+  h_echo "$@"
 }
 
 h_warn() {
   [[ "$1" == '-t' ]] && { >&2 h_echo -n "${H_YELLOW}warning${H_RESET}: "; shift; }
+  >&2 h_echo "$@"
+}
+
+h_error() {
+  [[ "$1" == '-t' ]] && { >&2 h_echo -n "${H_RED_BOLD}error${H_RESET}: "; shift; }
   >&2 h_echo "$@"
 }
 

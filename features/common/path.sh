@@ -2,6 +2,10 @@
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
+h_is_path_sourced() {
+  return 0
+}
+
 h_in_path() {
   [[ ":$PATH:" == *":$1:"* ]]
 }
