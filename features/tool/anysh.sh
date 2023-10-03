@@ -21,7 +21,7 @@ h_anysh_in_groups() {
 h_anysh_get_features() {
   local target="$1"
   if [ -z "$target" ]; then
-    find "$H_FEATURES_DIR" -type f -name '*.sh' -exec bash -c "x='{}'; echo \"\${x#$H_FEATURES_DIR/}\"" \;
+    find "$H_FEATURES_DIR" -type f -name '*.sh' -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
   elif [[ "${target:0:1}" == ':' ]]; then
     target="${target:1}"
     if ! h_anysh_in_groups "$target"; then

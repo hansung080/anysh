@@ -16,7 +16,7 @@ h_source_is_force() {
 __h_source_one() {
   local target="$1"
   if ! h_source_is_force && h_is_"$target"_sourced 2> /dev/null; then
-    return 1 # already sourced
+    return 1 # feature already sourced
   fi
 
   local IFS=$'\n'
@@ -29,16 +29,16 @@ __h_source_one() {
     if [[ "$fname" == "$target" ]]; then
       if ! h_source_is_force && [[ "${base:0:1}" == '.' ]]; then
         echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: $target is off"
-        return 2 # is off
+        return 2 # feature is off
       else
         source "$feature"
         __h_is_debug && echo -e "${__H_GREEN}debug${__H_RESET}: $target just sourced: $feature"
-        return 0 # just sourced
+        return 0 # feature just sourced
       fi
     fi
   done
   echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: $target not found"
-  return 3 # not found
+  return 3 # feature not found
 }
 
 h_source() {
