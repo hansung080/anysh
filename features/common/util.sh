@@ -11,12 +11,8 @@ h_is_util_sourced() {
   return 0
 }
 
-h_is_debug() {
-  [ -n "$H_DEBUG" ]
-}
-
-h_is_release() {
-  [ -z "$H_DEBUG" ]
+h_is_verbose() {
+  [ -n "$H_VERBOSE" ]
 }
 
 h_is_bash() {
@@ -40,7 +36,7 @@ h_echo() {
 }
 
 h_debug() {
-  h_is_debug || return 0
+  h_is_verbose || return 0
   [[ "$1" == '-t' ]] && { h_echo -n "${H_GREEN}debug${H_RESET}: "; shift; }
   h_echo "$@"
 }
