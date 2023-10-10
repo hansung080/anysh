@@ -1,6 +1,6 @@
 : "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
 source "$H_ANYSH_DIR/hidden/source.sh"
-h_source 'util'
+h_source 'util' 'getopt'
 
 H_ANYSH_VERSION='1.0.0'
 H_FEATURES_DIR="$H_ANYSH_DIR/features"
@@ -118,7 +118,17 @@ h_anysh_ls_remote() {
   :
 }
 
+h_anysh_check_args_nonzero() {
+  if (($# == 0)); then
+    h_error -t "argument <features...> required"
+    h_anysh_usage
+    return 1
+  fi
+  return 0
+}
+
 h_anysh_on() {
+  h_anysh_check_args_nonzero "$@" || return 1
   local IFS=$'\n'
   local feature="$1" file base fname
   for file in $(h_anysh_find_features); do
@@ -140,6 +150,7 @@ h_anysh_on() {
 }
 
 h_anysh_off() {
+  h_anysh_check_args_nonzero "$@" || return 1
   local IFS=$'\n'
   local feature="$1" file base fname
   for file in $(h_anysh_find_features); do
@@ -160,12 +171,32 @@ h_anysh_off() {
   return 1
 }
 
+h_anysh_update_is_default() {
+  [ -n "$H_ANYSH_UPDATE_DEFAULT" ]
+}
+
+h_anysh_update_is_reset() {
+  [ -n "$H_ANYSH_UPDATE_RESET" ]
+}
+
 h_anysh_update() {
-  :
+  h_anysh_check_args_nonzero "$@" || return 1
+}
+
+h_anysh_src_is_force() {
+  [ -n "$H_ANYSH_SRC_FORCE" ]
+}
+
+h_anysh_src() {
+  h_anysh_check_args_nonzero "$@" || return 1
+}
+
+h_anysh_hsrc() {
+  h_anysh_check_args_nonzero "$@" || return 1
 }
 
 h_anysh_usage() {
-  h_error "Run 'anysh help' for more information on the usage."
+  h_error "Run 'anysh --help' for more information on the usage."
 }
 
 h_anysh_help() {
@@ -194,16 +225,67 @@ h_anysh_help() {
 }
 
 anysh() {
+  local H_VERBOSE=
+  local H_SOURCE_ENABLE=
+  local H_SOURCE_FORCE=
+  local H_ANYSH_UPDATE_DEFAULT=
+  local H_ANYSH_UPDATE_RESET=
+  local H_ANYSH_SRC_FORCE=
+
+  local options
+  if ! options="$(getopt -o 'hVvf' -l 'help,version,verbose,default,reset,force' -- "$@")"; then
+    h_anysh_usage
+    return 1
+  fi
+
+  eval set -- "$options"
+
+  while true; do
+    case "$1" in
+      '-h'|'--help')
+        h_anysh_help
+        return ;;
+      '-V'|'--version')
+        h_echo "$H_ANYSH_VERSION"
+        return ;;
+      '-v'|'--verbose')
+        H_VERBOSE='true'
+        shift ;;
+      '--default')
+        H_ANYSH_UPDATE_DEFAULT='true'
+        shift ;;
+      '--reset')
+        H_ANYSH_UPDATE_RESET='true'
+        shift ;;
+      '-f'|'--force')
+        H_ANYSH_SRC_FORCE='true'
+        H_SOURCE_FORCE='true'
+        shift ;;
+      '--')
+        shift
+        break ;;
+    esac
+  done
+
   local cmd="$1"
   shift
+
+  local arg
+  for arg in "$@"; do
+    if [[ "$arg" == '*' ]]; then
+      set -- '*'
+      break
+    fi
+  done
+
   case "$cmd" in
-    'ls')        h_anysh_ls "$@";;
-    'ls-remote') h_anysh_ls_remote "$@";;
-    'on')        h_anysh_on "$@";;
-    'off')       h_anysh_off "$@";;
-    'update')    h_anysh_update "$@";;
-    'version')   h_echo "$H_ANYSH_VERSION";;
-    'help')      h_anysh_help;;
+    'ls')        h_anysh_ls "$@" ;;
+    'ls-remote') h_anysh_ls_remote "$@" ;;
+    'on')        h_anysh_on "$@" ;;
+    'off')       h_anysh_off "$@" ;;
+    'update')    h_anysh_update "$@" ;;
+    'src')       h_anysh_src "$@" ;;
+    'hsrc')      H_SOURCE_ENABLE='true' h_anysh_hsrc "$@" ;;
     *)
       h_error -t "invalid command: $cmd"
       h_anysh_usage

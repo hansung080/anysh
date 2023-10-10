@@ -82,13 +82,13 @@ h_get_options_help() {
   h_echo 'Options:'
   h_echo '  -o <optstring>  Specify the short options to be recognized'
   h_echo '  -l <optstring>  Specify the long options to be recognized'
-  h_echo '  -V              Display the version of h_get_options'
   h_echo '  -h              Display this help message'
+  h_echo '  -V              Display the version of h_get_options'
 }
 
 h_get_options() {
   local opt='' OPTIND=1 OPTARG='' sopts='' lopts=''
-  while getopts ':o:l:Vh' opt; do
+  while getopts ':o:l:hV' opt; do
     case "$opt" in
       'o')
         h_check_optarg "-$opt" "$OPTARG" h_get_options_usage || return 2
@@ -98,12 +98,12 @@ h_get_options() {
         h_check_optarg "-$opt" "$OPTARG" h_get_options_usage || return 2
         lopts="$OPTARG"
         ;;
-      'V')
-        h_echo 'h_get_options v1.0.0 for bash'
-        return 0
-        ;;
       'h')
         h_get_options_help
+        return 0
+        ;;
+      'V')
+        h_echo 'h_get_options v1.0.0 for bash'
         return 0
         ;;
       '?')

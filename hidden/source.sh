@@ -8,6 +8,10 @@ __h_is_verbose() {
   [ -n "$H_VERBOSE" ]
 }
 
+h_source_is_enable() {
+  [ -n "$H_SOURCE_ENABLE" ]
+}
+
 h_source_is_force() {
   [ -n "$H_SOURCE_FORCE" ]
 }
@@ -15,14 +19,14 @@ h_source_is_force() {
 __h_source_one() {
   local target="$1"
   if ! h_source_is_force && h_is_"$target"_sourced 2> /dev/null; then
-    return 1 # feature already sourced
+    return 2 # feature already sourced
   fi
 
   local feature
   while IFS= read -rd '' feature; do
     if ! h_source_is_force && [[ "$(basename "$feature")" == .* ]]; then
       echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: $target is off"
-      return 2 # feature is off
+      return 3 # feature is off
     else
       source "$feature"
       __h_is_verbose && echo -e "${__H_GREEN}debug${__H_RESET}: h_source: $target just sourced: $feature"
@@ -30,10 +34,11 @@ __h_source_one() {
     fi
   done < <(find "$__H_FEATURES_DIR" -type f \( -name "$target.sh" -o -name ".$target.sh" \) -print0)
   echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: $target not found"
-  return 3 # feature not found
+  return 4 # feature not found
 }
 
 h_source() {
+  h_source_is_enable || return 1 # h_source not enabled
   local fname r ret=0
   for fname in "$@"; do
     __h_source_one "$fname"; r=$?
