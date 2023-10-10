@@ -10,34 +10,42 @@ h_is_anysh_sourced() {
 }
 
 h_anysh_get_groups() {
-  find "$H_FEATURES_DIR" -depth 1 -type d -name "${1:-*}" -exec basename {} \;
+  find "$H_FEATURES_DIR" -depth 1 -type d -name "${1-*}" -exec basename {} \;
 }
 
 h_anysh_get_features() {
-  local target="$1"
-  case "$target" in
-    ''|'*')
-      find "$H_FEATURES_DIR" -type f -name '*.sh' -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
-      ;;
-    :*)
-      target="${target:1}"
-      local group groups=()
-      while IFS= read -r group; do
-        groups+=("$H_FEATURES_DIR/$group")
-      done < <(h_anysh_get_groups "$target")
-      if ((${#groups[@]} == 0)); then
-        h_error -t "invalid group: $target"
-        return 1
-      fi
-      find "${groups[@]}" -type f -name '*.sh' -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
-      ;;
-    *)
-      if ! find "$H_FEATURES_DIR" -type f \( -name "$target.sh" -o -name ".$target.sh" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \; | grep '.'; then
-        h_error -t "invalid feature: $target"
-        return 1
-      fi
-      ;;
-  esac
+  (($# == 0)) && set -- '*'
+  local target group groups=() feature_opts=()
+  for target in "$@"; do
+    case "$target" in
+      '*')
+        find "$H_FEATURES_DIR" -type f -name '*.sh' -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
+        return
+        ;;
+      :*)
+        target="${target:1}"
+        while IFS= read -r group; do
+          h_in_array "$group" groups || groups+=("$group")
+        done < <(h_anysh_get_groups "$target")
+        ;;
+      *)
+        feature_opts+=('-o' '-name' "$target.sh" '-o' '-name' ".$target.sh")
+        ;;
+    esac
+  done
+
+  if ((${#groups[@]} > 0)); then
+    find "${groups[@]/#/$H_FEATURES_DIR/}" -type f -name '*.sh' -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
+  fi
+
+  if ((${#feature_opts[@]} > 0)); then
+    if ((${#groups[@]} > 0)); then
+      local _groups=("${groups[@]/#/^}")
+      find "$H_FEATURES_DIR" -type f \( "${feature_opts[@]:1}" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \; | grep -Ev "$(h_join_elems_by '|' "${_groups[@]/%//}")"
+    else
+      find "$H_FEATURES_DIR" -type f \( "${feature_opts[@]:1}" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
+    fi
+  fi
 }
 
 __h_anysh_parse_feature() {
@@ -83,13 +91,14 @@ h_anysh_ls() {
     if ((flen > fmax)); then
       fmax="$flen"
     fi
-  done < <(h_anysh_get_features "$1")
+  done < <(h_anysh_get_features "$@")
 
   local gn fn sn
   ((gn = gmax - ${#t_gname} + 2))
   ((fn = fmax - ${#t_fname} + 2))
   ((sn = smax - ${#t_state} + 2))
   h_echo "$t_gname$(h_repeat ' ' "$gn")$t_fname$(h_repeat ' ' "$fn")$t_state$(h_repeat ' ' "$sn")$t_deps"
+  ((${#features[@]} == 0)) && return 1
 
   local style
   while IFS="$sep" read -r gname fname state deps; do
@@ -161,7 +170,9 @@ h_anysh_usage() {
 
 h_anysh_help() {
   h_echo 'Usage:'
-  h_echo '  anysh [<options...>] <command> [<arguments...>]'
+  h_echo '  anysh [<options...>] <command> [<features...>]'
+  h_echo '    - Use :<groups...> instead of <features...> to specify groups.'
+  h_echo '    - Regular expression which is same as find -name option argument can be used in <features...> or :<groups...>'
   h_echo
   h_echo 'Options:'
   h_echo '  -h, --help     Display this help message'
