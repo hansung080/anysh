@@ -10,12 +10,18 @@ h_is_anysh_sourced() {
 }
 
 h_anysh_get_groups() {
-  find "$H_FEATURES_DIR" -depth 1 -type d -name "${1-*}" -exec basename {} \;
+  (($# == 0)) && set -- '*'
+  local target opts=()
+  for target in "$@"; do
+    opts+=('-o' '-name' "$target")
+  done
+
+  find "$H_FEATURES_DIR" -depth 1 -type d \( "${opts[@]:1}" \) -exec basename {} \;
 }
 
 h_anysh_get_features() {
   (($# == 0)) && set -- '*'
-  local target group groups=() feature_opts=()
+  local target group_args=() feature_opts=() groups=()
   for target in "$@"; do
     case "$target" in
       '*')
@@ -23,10 +29,7 @@ h_anysh_get_features() {
         return
         ;;
       :*)
-        target="${target:1}"
-        while IFS= read -r group; do
-          h_in_array "$group" groups || groups+=("$group")
-        done < <(h_anysh_get_groups "$target")
+        group_args+=("${target:1}")
         ;;
       *)
         feature_opts+=('-o' '-name' "$target.sh" '-o' '-name' ".$target.sh")
@@ -34,14 +37,17 @@ h_anysh_get_features() {
     esac
   done
 
-  if ((${#groups[@]} > 0)); then
-    find "${groups[@]/#/$H_FEATURES_DIR/}" -type f -name '*.sh' -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
+  if ((${#group_args[@]} > 0)); then
+    h_split $'\n' "$(h_anysh_get_groups "${group_args[@]}")" groups
+    if ((${#groups[@]} > 0)); then
+      find "${groups[@]/#/$H_FEATURES_DIR/}" -type f -name '*.sh' -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
+    fi
   fi
 
   if ((${#feature_opts[@]} > 0)); then
     if ((${#groups[@]} > 0)); then
       local _groups=("${groups[@]/#/^}")
-      find "$H_FEATURES_DIR" -type f \( "${feature_opts[@]:1}" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \; | grep -Ev "$(h_join_elems_by '|' "${_groups[@]/%//}")"
+      find "$H_FEATURES_DIR" -type f \( "${feature_opts[@]:1}" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \; | grep -Ev "$(h_join_elems '|' "${_groups[@]/%//}")"
     else
       find "$H_FEATURES_DIR" -type f \( "${feature_opts[@]:1}" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
     fi
@@ -203,7 +209,7 @@ h_anysh_help() {
   h_echo 'Usage:'
   h_echo '  anysh [<options...>] <command> [<features...>]'
   h_echo '    - Use :<groups...> instead of <features...> to specify groups.'
-  h_echo '    - Regular expression which is same as find -name option argument can be used in <features...> or :<groups...>'
+  h_echo '    - Glob characters (* ? [ ]) can be used in <features...> or :<groups...> for pattern matching.'
   h_echo
   h_echo 'Options:'
   h_echo '  -h, --help     Display this help message'

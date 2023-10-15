@@ -31,6 +31,10 @@ h_is_mac() {
   [[ "$(uname -s)" == 'Darwin' ]]
 }
 
+h_is_whitespace() {
+  [[ "$1" == ' ' || "$1" == $'\t' || "$1" == $'\n' ]]
+}
+
 h_echo() {
   echo -e "$@"
 }
@@ -70,30 +74,86 @@ h_shell_name() {
   fi
 }
 
-h_split_by() {
-  if h_is_zsh; then
-    eval "${3:-$2}"='("${(@s/'"$1"'/)'"$2"'}")'
+h_trim_array() {
+  local _arr="${2:-$1}" _elem
+  eval set -- '"${'"$1"'[@]}"'
+  eval "$_arr"='()'
+  for _elem in "$@"; do
+    if [ -n "$_elem" ]; then
+      eval "$_arr"+="('$_elem')"
+    fi
+  done
+}
+
+# If null fields don't exist, h_split, h_split_trim_ws, h_split_trim, and h_split_raw will have the same behavior.
+# Otherwise, In Bash h_split and h_split_trim_ws, In Zsh h_split and h_split_raw will have the same behavior.
+# NOTE: Thus, if separator is whitespace and null fields exist, h_split will behave in a different way in Bash and Zsh, so h_split must not be used.
+h_split() {
+  if [ -z "$2" ]; then
+    eval "$3"='()'
+  elif h_is_zsh; then
+    if [[ "$1" == '/' ]]; then
+      eval "$3"='("${(@s:'"$1"':)2}")'
+    else
+      eval "$3"='("${(@s/'"$1"'/)2}")'
+    fi
   else
-    IFS="$1" read -ra "${3:-$2}" <<< "${!2}"
+    #IFS="$1" read -ra "$3" <<< "$2" # This reads only the first item delimited by newline.
+    IFS="$1" read -rd '' -a "$3" < <(echo -n "$2$1"; echo -ne '\0')
   fi
 }
 
-h_join_array_by() {
+h_split_trim_ws() {
+  h_split "$@" || return
+  if h_is_zsh && h_is_whitespace "$1"; then
+    h_trim_array "$3"
+  fi
+}
+
+h_split_trim() {
+  h_split "$@" || return
+  if h_is_zsh; then
+    h_trim_array "$3"
+  else
+    if ! h_is_whitespace "$1"; then
+      h_trim_array "$3"
+    fi
+  fi
+}
+
+h_split_raw() {
+  if h_is_zsh; then
+    h_split "$@"
+  else
+    if [ -z "$2" ]; then
+      eval "$3"='()'
+      return
+    fi
+
+    local _elem
+    eval "$3"='()'
+    while read -rd "$1" _elem; do
+      eval "$3"+="('$_elem')"
+    done < <(echo -n "$2$1")
+  fi
+}
+
+h_join_array() {
   local IFS="$1"
   eval h_echo '"${'"$2"'[*]}"'
 }
 
-h_join_elems_by() {
+h_join_elems() {
   local IFS="$1"
   shift
   h_echo "$*"
 }
 
 h_in_array() {
-  local target="$1" elem
+  local _target="$1" _elem
   eval set -- '"${'"$2"'[@]}"'
-  for elem in "$@"; do
-    [[ "$elem" == "$target" ]] && return 0
+  for _elem in "$@"; do
+    [[ "$_elem" == "$_target" ]] && return 0
   done
   return 1
 }
@@ -105,6 +165,17 @@ h_in_elems() {
     [[ "$elem" == "$target" ]] && return 0
   done
   return 1
+}
+
+h_dedup_array() {
+  local _arr="${2:-$1}" _elem
+  eval set -- '"${'"$1"'[@]}"'
+  eval "$_arr"='()'
+  for _elem in "$@"; do
+    if ! h_in_array "$_elem" "$_arr"; then
+      eval "$_arr"+="('$_elem')"
+    fi
+  done
 }
 
 h_repeat() {
