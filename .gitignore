@@ -228,4 +228,7 @@ $RECYCLE.BIN/
 # Make Kit
 build/
 
+# Test shell
+test.sh
+
 # End of hansung

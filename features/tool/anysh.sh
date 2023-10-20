@@ -10,7 +10,7 @@ h_is_anysh_sourced() {
 }
 
 h_anysh_get_groups() {
-  (($# == 0)) && set -- '*'
+  (($# == 0)) && return 0
   local target opts=()
   for target in "$@"; do
     opts+=('-o' '-name' "$target")
@@ -20,7 +20,7 @@ h_anysh_get_groups() {
 }
 
 h_anysh_get_features() {
-  (($# == 0)) && set -- '*'
+  (($# == 0)) && return 0
   local target group_args=() feature_opts=() groups=()
   for target in "$@"; do
     case "$target" in
@@ -80,7 +80,15 @@ h_anysh_get_funcs() {
   grep -E '^ *[A-Za-z0-9_-]+ *\(\)' "$1" | sed 's/().*//' | tr -d ' '
 }
 
+h_anysh_unset_funcs() {
+  local func
+  while IFS= read -r func; do
+    unset -v "$func"
+  done < <(h_anysh_get_funcs "$1")
+}
+
 h_anysh_ls() {
+  (($# == 0)) && set -- '*'
   local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES'
   local feature dir base gname fname state deps
   local features=() sep=' ' gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}"
@@ -121,7 +129,7 @@ h_anysh_ls() {
 }
 
 h_anysh_ls_remote() {
-  :
+  (($# == 0)) && set -- '*'
 }
 
 h_anysh_check_args_nonzero() {
@@ -135,46 +143,70 @@ h_anysh_check_args_nonzero() {
 
 h_anysh_on() {
   h_anysh_check_args_nonzero "$@" || return 1
-  local IFS=$'\n'
-  local feature="$1" file base fname
-  for file in $(h_anysh_find_features); do
-    base="$(basename "$file")"
-    fname="${base#*-}"
-    fname="${fname%.sh}"
-    if [[ "$fname" == "$feature" ]]; then
-      if [[ "${base:0:1}" == '.' ]]; then
-        mv "$file" "$(dirname "$file")/${base#.}"
-        h_echo "$feature is turned on"
-      else
-        h_echo "$feature is already on"
-      fi
-      return 0
+  local feature dir base gname fname state
+  local dep=() deps=() targets=() out=''
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    if [[ "$1" != '*' ]]; then
+      h_split ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")" dep
+      deps+=("${dep[@]}")
+      targets+=("$gname")
     fi
-  done
-  h_error -t "$feature not found"
-  return 1
+    source "$H_FEATURES_DIR/$feature"
+    if [[ "$state" == 'on' ]]; then
+      out+=" $gname"
+    else
+      out+=" $H_BLUE$gname$H_RESET"
+      mv "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}"
+    fi
+  done < <(h_anysh_get_features "$@")
+
+  h_dedup_array deps
+  h_diff_array deps targets
+  local sep=$'\n'
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    source "$H_FEATURES_DIR/$feature"
+    if [[ "$state" == 'on' ]]; then
+      out+="$sep$gname"
+    else
+      out+="$sep$H_BLUE$gname$H_RESET"
+      mv "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}"
+    fi
+    sep=' '
+  done < <(h_anysh_get_features "${deps[@]}")
+
+  if [ -n "$out" ]; then
+    h_info "${out# }"
+  else
+    local IFS=' '
+    h_error -t "no features matched: $*"
+    return 1
+  fi
 }
 
 h_anysh_off() {
   h_anysh_check_args_nonzero "$@" || return 1
-  local IFS=$'\n'
-  local feature="$1" file base fname
-  for file in $(h_anysh_find_features); do
-    base="$(basename "$file")"
-    fname="${base#*-}"
-    fname="${fname%.sh}"
-    if [[ "$fname" == "$feature" ]]; then
-      if [[ "${base:0:1}" == '.' ]]; then
-        h_echo "$feature is already off"
-      else
-        mv "$file" "$(dirname "$file")/.$base"
-        h_echo "$feature is turned off"
-      fi
-      return 0
+  local feature dir base gname fname state
+  local out=''
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    h_is_sourced "$gname" && h_anysh_unset_funcs "$H_FEATURES_DIR/$feature"
+    if [[ "$state" == 'on' ]]; then
+      out+=" $H_BLUE$gname$H_RESET"
+      mv "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/.$base"
+    else
+      out+=" $gname"
     fi
-  done
-  h_error -t "$feature not found"
-  return 1
+  done < <(h_anysh_get_features "$@")
+
+  if [ -n "$out" ]; then
+    h_info "${out# }"
+  else
+    local IFS=' '
+    h_error -t "no features matched: $*"
+    return 1
+  fi
 }
 
 h_anysh_update_is_default() {

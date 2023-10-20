@@ -31,6 +31,18 @@ h_is_mac() {
   [[ "$(uname -s)" == 'Darwin' ]]
 }
 
+h_is_func_declared() {
+  #declare -F "$1" > /dev/null # This works only in Bash.
+  declare -f "$1" > /dev/null # This works in both Bash and Zsh.
+  # In Bash and Zsh, typeset is exactly the same as declare, but considered obsolete.
+  #typeset -F "$1" > /dev/null # This works only in Bash.
+  #typeset -f "$1" > /dev/null # This works in both Bash and Zsh.
+}
+
+h_is_sourced() {
+  h_is_func_declared "h_is_$1_sourced"
+}
+
 h_is_whitespace() {
   [[ "$1" == ' ' || "$1" == $'\t' || "$1" == $'\n' ]]
 }
@@ -75,12 +87,12 @@ h_shell_name() {
 }
 
 h_trim_array() {
-  local _arr="${2:-$1}" _elem
+  local _name="${2:-$1}" _elem
   eval set -- '"${'"$1"'[@]}"'
-  eval "$_arr"='()'
+  eval "$_name"='()'
   for _elem in "$@"; do
     if [ -n "$_elem" ]; then
-      eval "$_arr"+="('$_elem')"
+      eval "$_name"+="('$_elem')"
     fi
   done
 }
@@ -168,12 +180,23 @@ h_in_elems() {
 }
 
 h_dedup_array() {
-  local _arr="${2:-$1}" _elem
+  local _name="${2:-$1}" _elem
   eval set -- '"${'"$1"'[@]}"'
-  eval "$_arr"='()'
+  eval "$_name"='()'
   for _elem in "$@"; do
-    if ! h_in_array "$_elem" "$_arr"; then
-      eval "$_arr"+="('$_elem')"
+    if ! h_in_array "$_elem" "$_name"; then
+      eval "$_name"+="('$_elem')"
+    fi
+  done
+}
+
+h_diff_array() {
+  local _name2="$2" _name3="${3:-$1}" _elem
+  eval set -- '"${'"$1"'[@]}"'
+  eval "$_name3"='()'
+  for _elem in "$@"; do
+    if ! h_in_array "$_elem" "$_name2"; then
+      eval "$_name3"+="('$_elem')"
     fi
   done
 }

@@ -30,6 +30,6 @@ a_ng2:() {
   echo 'called a_ng2:'
 }
 
-a_ng3( ) {
-  echo 'called a_ng3'
-}
+#a_ng3( ) {
+#  echo 'called a_ng3'
+#}

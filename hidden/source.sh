@@ -16,9 +16,13 @@ h_source_is_force() {
   [ -n "$H_SOURCE_FORCE" ]
 }
 
+__h_is_sourced() {
+  declare -f "h_is_$1_sourced" > /dev/null
+}
+
 __h_source_one() {
   local target="$1"
-  if ! h_source_is_force && h_is_"$target"_sourced 2> /dev/null; then
+  if ! h_source_is_force && __h_is_sourced "$target"; then
     return 2 # feature already sourced
   fi
 
