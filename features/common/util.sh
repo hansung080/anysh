@@ -209,6 +209,14 @@ h_repeat() {
   h_echo "$out"
 }
 
+h_move_no_overwrite() {
+  if [ -e "$2" ]; then
+    h_error -t "cannot overwrite: $1 -> $2"
+    return 1
+  fi
+  mv -n "$1" "$2"
+}
+
 h_test_style() {
   h_echo "${H_BLACK}black${H_RESET}"
   h_echo "${H_BLACK_BOLD}black bold${H_RESET}"

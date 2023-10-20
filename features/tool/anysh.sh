@@ -76,17 +76,6 @@ h_anysh_get_deps() {
   grep -E '^ *h_source +' "$1" | sed 's/h_source//' | xargs echo
 }
 
-h_anysh_get_funcs() {
-  grep -E '^ *[A-Za-z0-9_-]+ *\(\)' "$1" | sed 's/().*//' | tr -d ' '
-}
-
-h_anysh_unset_funcs() {
-  local func
-  while IFS= read -r func; do
-    unset -v "$func"
-  done < <(h_anysh_get_funcs "$1")
-}
-
 h_anysh_ls() {
   (($# == 0)) && set -- '*'
   local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES'
@@ -150,14 +139,15 @@ h_anysh_on() {
     if [[ "$1" != '*' ]]; then
       h_split ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")" dep
       deps+=("${dep[@]}")
-      targets+=("$gname")
+      targets+=("$fname")
     fi
-    source "$H_FEATURES_DIR/$feature"
     if [[ "$state" == 'on' ]]; then
-      out+=" $gname"
+      out+=" $fname"
+      source "$H_FEATURES_DIR/$feature"
     else
-      out+=" $H_BLUE$gname$H_RESET"
-      mv "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}"
+      out+=" $H_BLUE$fname$H_RESET"
+      h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}" && \
+      source "$H_FEATURES_DIR/$dir/${base#.}"
     fi
   done < <(h_anysh_get_features "$@")
 
@@ -166,12 +156,13 @@ h_anysh_on() {
   local sep=$'\n'
   while IFS= read -r feature; do
     __h_anysh_parse_feature
-    source "$H_FEATURES_DIR/$feature"
     if [[ "$state" == 'on' ]]; then
-      out+="$sep$gname"
+      out+="$sep$fname"
+      source "$H_FEATURES_DIR/$feature"
     else
-      out+="$sep$H_BLUE$gname$H_RESET"
-      mv "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}"
+      out+="$sep$H_BLUE$fname$H_RESET"
+      h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}" && \
+      source "$H_FEATURES_DIR/$dir/${base#.}"
     fi
     sep=' '
   done < <(h_anysh_get_features "${deps[@]}")
@@ -188,15 +179,16 @@ h_anysh_on() {
 h_anysh_off() {
   h_anysh_check_args_nonzero "$@" || return 1
   local feature dir base gname fname state
-  local out=''
+  local out='' unsets=()
   while IFS= read -r feature; do
     __h_anysh_parse_feature
-    h_is_sourced "$gname" && h_anysh_unset_funcs "$H_FEATURES_DIR/$feature"
     if [[ "$state" == 'on' ]]; then
-      out+=" $H_BLUE$gname$H_RESET"
-      mv "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/.$base"
+      out+=" $H_BLUE$fname$H_RESET"
+      h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/.$base" && \
+      h_is_sourced "$fname" && unsets+=("$dir/.$base")
     else
-      out+=" $gname"
+      out+=" $fname"
+      h_is_sourced "$fname" && unsets+=("$feature")
     fi
   done < <(h_anysh_get_features "$@")
 
@@ -207,6 +199,13 @@ h_anysh_off() {
     h_error -t "no features matched: $*"
     return 1
   fi
+
+  local func
+  for feature in "${unsets[@]}"; do
+      while IFS= read -r func; do
+        unset -f "$func"
+      done < <(grep -E '^ *[A-Za-z0-9_-]+ *\(\)' "$H_FEATURES_DIR/$feature" | sed 's/().*//' | tr -d ' ')
+  done
 }
 
 h_anysh_update_is_default() {
