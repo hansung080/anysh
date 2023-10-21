@@ -183,7 +183,7 @@ h_anysh_off() {
   while IFS= read -r feature; do
     __h_anysh_parse_feature
     if [[ "$state" == 'on' ]]; then
-      out+=" $H_BLUE$fname$H_RESET"
+      out+=" $H_RED$fname$H_RESET"
       h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/.$base" && \
       h_is_sourced "$fname" && unsets+=("$dir/.$base")
     else
@@ -226,10 +226,72 @@ h_anysh_src_is_force() {
 
 h_anysh_src() {
   h_anysh_check_args_nonzero "$@" || return 1
+  local feature dir base gname fname state
+  local dep=() deps=() targets=() out=''
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    if [[ "$1" != '*' ]]; then
+      h_split ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")" dep
+      deps+=("${dep[@]}")
+      targets+=("$fname")
+    fi
+    if [[ "$state" == 'on' ]]; then
+      out+=" $fname"
+      source "$H_FEATURES_DIR/$feature"
+    else
+      out+=" $H_RED$fname$H_RESET"
+      if h_anysh_src_is_force; then
+        source "$H_FEATURES_DIR/$feature"
+      else
+        h_error -t "$fname is off"
+      fi
+    fi
+  done < <(h_anysh_get_features "$@")
+
+  h_dedup_array deps
+  h_diff_array deps targets
+  local sep=$'\n'
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    if [[ "$state" == 'on' ]]; then
+      out+="$sep$fname"
+      source "$H_FEATURES_DIR/$feature"
+    else
+      out+="$sep$H_RED$fname$H_RESET"
+      if h_anysh_src_is_force; then
+        source "$H_FEATURES_DIR/$feature"
+      else
+        h_error -t "$fname is off"
+      fi
+    fi
+    sep=' '
+  done < <(h_anysh_get_features "${deps[@]}")
+
+  if [ -n "$out" ]; then
+    h_info "${out# }"
+  else
+    local IFS=' '
+    h_error -t "no features matched: $*"
+    return 1
+  fi
 }
 
 h_anysh_hsrc() {
   h_anysh_check_args_nonzero "$@" || return 1
+  local feature dir base gname fname state
+  local targets=()
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    targets+=("$fname")
+  done < <(h_anysh_get_features "$@")
+
+  if ((${#targets[@]} > 0)); then
+    h_source "${targets[@]}"
+  else
+    local IFS=' '
+    h_error -t "no features matched: $*"
+    return 5
+  fi
 }
 
 h_anysh_usage() {
@@ -245,7 +307,7 @@ h_anysh_help() {
   h_echo 'Options:'
   h_echo '  -h, --help     Display this help message'
   h_echo '  -V, --version  Display the version of anysh'
-  h_echo '  -v, --verbose  Display debug log'
+  h_echo '  -v, --verbose  Display debug logs. Only hsrc command has debug logs at the moment.'
   h_echo
   h_echo 'Usage by Command:'
   h_echo '  anysh ls [<features...>]         List installed <features...>, or all features if <features...> not provided'
