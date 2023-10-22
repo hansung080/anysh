@@ -16,37 +16,53 @@ h_source_is_force() {
   [ -n "$H_SOURCE_FORCE" ]
 }
 
-__h_is_sourced() {
-  declare -f "h_is_$1_sourced" > /dev/null
-}
+# Source features and their dependencies, in-dependencies-first and not-in-duplicate as default.
+h_source() {
+  h_source_is_enable || return 0
 
-__h_source_one() {
-  local target="$1"
-  if ! h_source_is_force && __h_is_sourced "$target"; then
-    return 2 # feature already sourced
+  if (($# == 0)); then
+    echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: arguments required"
+    return 1
   fi
 
-  local feature
+  local target opts=()
+  for target in "$@"; do
+    opts+=('-o' '-name' "$target.sh" '-o' '-name' ".$target.sh")
+  done
+
+  local feature base fname found='' ret=0 off
   while IFS= read -rd '' feature; do
-    if ! h_source_is_force && [[ "$(basename "$feature")" == .* ]]; then
-      echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: $target is off"
-      return 3 # feature is off
-    else
-      source "$feature"
-      __h_is_verbose && echo -e "${__H_GREEN}debug${__H_RESET}: h_source: $target just sourced: $feature"
-      return 0 # feature just sourced
+    found='true'
+    base="$(basename "$feature")"
+    fname="${base#.}"
+    fname="${fname%.sh}"
+    if ! h_source_is_force; then
+      if declare -f "h_is_${fname}_sourced" > /dev/null; then
+        continue
+      fi
+      if [[ "${base:0:1}" == '.' ]]; then
+        echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: $fname is off"
+        ret=1
+        continue
+      fi
     fi
-  done < <(find "$__H_FEATURES_DIR" -type f \( -name "$target.sh" -o -name ".$target.sh" \) -print0)
-  echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: $target not found"
-  return 4 # feature not found
+
+    source "$feature"
+    off=''; [[ "${base:0:1}" == '.' ]] && off=' (off)'
+    __h_is_verbose && echo -e "${__H_GREEN}debug${__H_RESET}: h_source: $fname just sourced$off: $feature"
+  done < <(find "$__H_FEATURES_DIR" -type f \( "${opts[@]:1}" \) -print0)
+
+  if [ -z "$found" ]; then
+    local IFS=' '
+    echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: no features found: $*"
+    return 1
+  fi
+  return "$ret"
 }
 
-h_source() {
-  h_source_is_enable || return 1 # h_source not enabled
-  local fname r ret=0
-  for fname in "$@"; do
-    __h_source_one "$fname"; r=$?
-    ((r > ret)) && ret="$r"
-  done
-  return "$ret"
+# Allow to source in-duplicate and off-feature.
+h_source_force() {
+  local H_SOURCE_ENABLE='true'
+  local H_SOURCE_FORCE='true'
+  h_source "$@"
 }

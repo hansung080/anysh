@@ -218,6 +218,7 @@ h_move_no_overwrite() {
 }
 
 h_test_style() {
+  h_echo "normal"
   h_echo "${H_BLACK}black${H_RESET}"
   h_echo "${H_BLACK_BOLD}black bold${H_RESET}"
   h_echo "${H_RED}red${H_RESET}"

@@ -1,4 +1,5 @@
 : "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
+: "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util' 'getopt'
 
@@ -171,7 +172,7 @@ h_anysh_on() {
     h_info "${out# }"
   else
     local IFS=' '
-    h_error -t "no features matched: $*"
+    h_error -t "no features found: $*"
     return 1
   fi
 }
@@ -183,7 +184,7 @@ h_anysh_off() {
   while IFS= read -r feature; do
     __h_anysh_parse_feature
     if [[ "$state" == 'on' ]]; then
-      out+=" $H_RED$fname$H_RESET"
+      out+=" $H_YELLOW$fname$H_RESET"
       h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/.$base" && \
       h_is_sourced "$fname" && unsets+=("$dir/.$base")
     else
@@ -196,7 +197,7 @@ h_anysh_off() {
     h_info "${out# }"
   else
     local IFS=' '
-    h_error -t "no features matched: $*"
+    h_error -t "no features found: $*"
     return 1
   fi
 
@@ -239,7 +240,7 @@ h_anysh_src() {
       out+=" $fname"
       source "$H_FEATURES_DIR/$feature"
     else
-      out+=" $H_RED$fname$H_RESET"
+      out+=" $H_YELLOW$fname$H_RESET"
       if h_anysh_src_is_force; then
         source "$H_FEATURES_DIR/$feature"
       else
@@ -257,7 +258,7 @@ h_anysh_src() {
       out+="$sep$fname"
       source "$H_FEATURES_DIR/$feature"
     else
-      out+="$sep$H_RED$fname$H_RESET"
+      out+="$sep$H_YELLOW$fname$H_RESET"
       if h_anysh_src_is_force; then
         source "$H_FEATURES_DIR/$feature"
       else
@@ -271,26 +272,8 @@ h_anysh_src() {
     h_info "${out# }"
   else
     local IFS=' '
-    h_error -t "no features matched: $*"
+    h_error -t "no features found: $*"
     return 1
-  fi
-}
-
-h_anysh_hsrc() {
-  h_anysh_check_args_nonzero "$@" || return 1
-  local feature dir base gname fname state
-  local targets=()
-  while IFS= read -r feature; do
-    __h_anysh_parse_feature
-    targets+=("$fname")
-  done < <(h_anysh_get_features "$@")
-
-  if ((${#targets[@]} > 0)); then
-    h_source "${targets[@]}"
-  else
-    local IFS=' '
-    h_error -t "no features matched: $*"
-    return 5
   fi
 }
 
@@ -307,7 +290,7 @@ h_anysh_help() {
   h_echo 'Options:'
   h_echo '  -h, --help     Display this help message'
   h_echo '  -V, --version  Display the version of anysh'
-  h_echo '  -v, --verbose  Display debug logs. Only hsrc command has debug logs at the moment.'
+  h_echo '  -v, --verbose  Display debug logs. Not used at the moment.'
   h_echo
   h_echo 'Usage by Command:'
   h_echo '  anysh ls [<features...>]         List installed <features...>, or all features if <features...> not provided'
@@ -317,10 +300,8 @@ h_anysh_help() {
   h_echo '  anysh update <features...>       Update <features...> and their dependencies into the latest version'
   h_echo '    --default                      Update with the default state'
   h_echo '    --reset                        Remove and reinstall anysh'
-  h_echo '  anysh src <features...>          Source <features...> and their dependencies using source which sources not-in-order and in-duplicate'
+  h_echo '  anysh src <features...>          Source <features...> and their dependencies, not-in-order and in-duplicate'
   h_echo '    -f, --force                    Allow to source off-feature'
-  h_echo '  anysh hsrc <features...>         Source <features...> and their dependencies using h_source which sources dependencies-first and not-in-duplicate'
-  h_echo '    -f, --force                    Allow to source in-duplicate and off-feature'
 }
 
 anysh() {
@@ -358,7 +339,6 @@ anysh() {
         shift ;;
       '-f'|'--force')
         H_ANYSH_SRC_FORCE='true'
-        H_SOURCE_FORCE='true'
         shift ;;
       '--')
         shift
@@ -384,7 +364,6 @@ anysh() {
     'off')       h_anysh_off "$@" ;;
     'update')    h_anysh_update "$@" ;;
     'src')       h_anysh_src "$@" ;;
-    'hsrc')      H_SOURCE_ENABLE='true' h_anysh_hsrc "$@" ;;
     *)
       h_error -t "invalid command: $cmd"
       h_anysh_usage
