@@ -16,11 +16,11 @@ h_is_verbose() {
 }
 
 h_is_bash() {
-  [ -n "${BASH_VERSION}" ]
+  [ -n "$BASH_VERSION" ]
 }
 
 h_is_zsh() {
-  [ -n "${ZSH_VERSION}" ]
+  [ -n "$ZSH_VERSION" ]
 }
 
 h_is_linux() {
