@@ -1,5 +1,4 @@
-: "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
-: "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
+: "${H_ANYSH_DIR:=$HOME/.anysh}"
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util' 'getopt'
 

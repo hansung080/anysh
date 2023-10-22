@@ -1,4 +1,4 @@
-: "${H_ANYSH_DIR:=$HOME/.anyshrc.d}"
+: "${H_ANYSH_DIR:=$HOME/.anysh}"
 __H_FEATURES_DIR="$H_ANYSH_DIR/features"
 __H_RESET=$'\033[0m'
 __H_RED_BOLD=$'\033[1;31m'
