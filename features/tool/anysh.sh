@@ -3,10 +3,21 @@ source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util' 'getopt'
 
 H_ANYSH_VERSION='1.0.0'
+H_HIDDEN_DIR="$H_ANYSH_DIR/hidden"
 H_FEATURES_DIR="$H_ANYSH_DIR/features"
 
 h_is_anysh_sourced() {
   return 0
+}
+
+h_anysh_get_hidden() {
+  (($# == 0)) && return 0
+  local target opts=()
+  for target in "$@"; do
+    opts+=('-o' '-name' "$target.sh" '-o' '-name' ".$target.sh")
+  done
+
+  find "$H_HIDDEN_DIR" -type f \( "${opts[@]:1}" \) -exec expr 'X{}' : "X$H_ANYSH_DIR/\(.*\)" \;
 }
 
 h_anysh_get_groups() {
@@ -54,10 +65,15 @@ h_anysh_get_features() {
   fi
 }
 
+h_anysh_get_all_features() {
+  h_anysh_get_hidden "$@" && \
+  h_anysh_get_features "$@"
+}
+
 __h_anysh_parse_feature() {
   dir="$(dirname "$feature")"
   if [[ "$dir" == '.' ]]; then
-    gname="-"
+    gname=''
   else
     gname="${dir%%/*}"
   fi
@@ -83,6 +99,7 @@ h_anysh_ls() {
   local features=() sep=' ' gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}"
   while IFS= read -r feature; do
     __h_anysh_parse_feature
+    gname="${gname:--}"
     deps="$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")"
     deps="${deps:--}"
     features+=("$gname$sep$fname$sep$state$sep${deps// /,}")
@@ -274,6 +291,27 @@ h_anysh_src() {
     h_error -t "no features found: $*"
     return 1
   fi
+}
+
+h_anysh_check_all_features_nodup() {
+  local feature base fname fnames=() dups=()
+  while IFS= read -r feature; do
+    base="$(basename "$feature")"
+    fname="${base#.}"
+    fname="${fname%.sh}"
+    if h_in_array "$fname" fnames; then
+      dups+=("$fname")
+    else
+      fnames+=("$fname")
+    fi
+  done < <(h_anysh_get_all_features '*')
+
+  if ((${#dups[@]} > 0)); then
+    local IFS=' '
+    h_error -t "duplicated features: ${dups[*]}"
+    return 1
+  fi
+  return 0
 }
 
 h_anysh_usage() {

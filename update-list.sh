@@ -1,21 +1,31 @@
 #!/bin/bash
 
-THIS_DIR='/Users/hansung/work/ws/hansung080/dev-settings/.anysh'
-HIDDEN_DIR="$THIS_DIR/hidden"
-FEATURES_DIR="$THIS_DIR/features"
-LIST_DIR="$THIS_DIR/list"
-HIDDEN_LIST="$LIST_DIR/hidden.txt"
-FEATURES_LIST="$LIST_DIR/features.txt"
+export H_ANYSH_DIR="$(dirname "$(readlink -f "$0")")"
+source "$H_ANYSH_DIR/hidden/source.sh"
+H_VERBOSE= H_SOURCE_ENABLE='true' H_SOURCE_FORCE=
+h_source 'anysh' || exit 1
 
-if [ ! -d "$LIST_DIR" ]; then
-  rm -rf "$LIST_DIR" && mkdir "$LIST_DIR"
-fi
+#h_anysh_check_all_features_nodup || exit 1
+h_anysh_check_all_features_nodup
+LIST_FILE="$H_ANYSH_DIR/list.txt"
+rm -f "$LIST_FILE"
 
-IFS=$'\n'
-for file in $(find "$HIDDEN_DIR" -type f -name '*.sh' -exec basename {} + | sort); do
-  echo "$file" >> "$HIDDEN_LIST"
-done
+main() {
+  local feature gname fpath deps hash sep=' '
+  while IFS= read -r feature; do
+    gname="${feature%%/*}"
+    [[ "$gname" == "$feature" ]] && gname=''
+    if [[ "$gname" == 'hidden' ]]; then
+      fpath="$H_ANYSH_DIR/$feature"
+      deps='-'
+    else
+      fpath="$H_FEATURES_DIR/$feature"
+      deps="$(h_anysh_get_deps "$fpath")"
+      deps="${deps:--}"
+    fi
+    hash='-'
+    echo "$feature$sep${deps// /,}$sep$hash" >> "$LIST_FILE"
+  done < <(h_anysh_get_all_features '*')
+}
 
-for file in $(find "$FEATURES_DIR" -type f -name '*.sh' -exec basename {} + | sort); do
-  echo "$file" >> "$FEATURES_LIST"
-done
+main
