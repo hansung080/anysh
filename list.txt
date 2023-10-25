@@ -25,9 +25,9 @@ ext/getopt.sh util 614a9dccecebf67862dfab90e199db48
 .animal/common/zebra.sh - d41d8cd98f00b204e9800998ecf8427e
 .animal/cat.sh util,path,getopt efa6dac79f97402c427e1442ad66700f
 common/path.sh util 45bc761827dbd2cfeea91ef645ac6e46
-common/util.sh - 4292c2802e7bd193f53eb6c9ae799c3e
+common/util.sh - 25bd6bcda865013da00fcfd5fce675e4
 chris.sh - d41d8cd98f00b204e9800998ecf8427e
 docker.sh util b4629b2f77bf69d6b5b8644c9c32eda1
 alice.sh - d41d8cd98f00b204e9800998ecf8427e
-tool/anysh.sh util,getopt 09c6a21ea953eccc9a4851786f05b766
-tool/bank.sh util 1f4b7451bf100829763deef6001b14d4
+tool/anysh.sh util,getopt 938092fd1a91a2f66e5bb73c0ade5521
+tool/bank.sh util d9199db2798ed940dc79268a1e289e6a

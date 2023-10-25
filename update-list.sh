@@ -23,7 +23,7 @@ main() {
       deps="$(h_anysh_get_deps "$fpath")"
       deps="${deps:--}"
     fi
-    hash="$(h_md5 "$fpath")"
+    hash="$(h_md5 "$fpath")" || hash='-'
     echo "$feature$sep${deps// /,}$sep$hash" >> "$LIST_FILE"
   done < <(h_anysh_get_all_features '*')
 }

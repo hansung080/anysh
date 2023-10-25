@@ -220,17 +220,27 @@ h_move_no_overwrite() {
 h_md5() {
   local line
   if which md5 > /dev/null; then
-    while read -r line; do
+    while IFS= read -r line; do
       h_echo "${line##* }"
     done < <(md5 "$@")
   elif which md5sum > /dev/null; then
-    while read -r line; do
+    while IFS= read -r line; do
       h_echo "${line%% *}"
     done < <(md5sum "$@")
   else
     h_error -t 'command not found: md5, md5sum'
     return 1
   fi
+}
+
+h_github_download() {
+  if (($# < 4)); then
+    h_error 'usage: h_github_download <user> <repo> <branch> <path> [<options...>]'
+    return 1
+  fi
+  local user="$1" repo="$2" branch="$3" _path="$4"
+  shift 4
+  curl -fsSL "https://raw.githubusercontent.com/$user/$repo/$branch/$_path" "$@"
 }
 
 h_test_style() {

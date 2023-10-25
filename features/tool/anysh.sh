@@ -71,6 +71,10 @@ h_anysh_get_all_features() {
   h_anysh_get_features "$@"
 }
 
+h_anysh_get_all_features_remote() {
+  :
+}
+
 __h_anysh_parse_feature() {
   dir="$(dirname "$feature")"
   if [[ "$dir" == '.' ]]; then
