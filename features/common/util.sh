@@ -217,6 +217,22 @@ h_move_no_overwrite() {
   mv -n "$1" "$2"
 }
 
+h_md5() {
+  local line
+  if which md5 > /dev/null; then
+    while read -r line; do
+      h_echo "${line##* }"
+    done < <(md5 "$@")
+  elif which md5sum > /dev/null; then
+    while read -r line; do
+      h_echo "${line%% *}"
+    done < <(md5sum "$@")
+  else
+    h_error -t 'command not found: md5, md5sum'
+    return 1
+  fi
+}
+
 h_test_style() {
   h_echo "normal"
   h_echo "${H_BLACK}black${H_RESET}"

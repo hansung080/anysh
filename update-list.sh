@@ -3,7 +3,7 @@
 export H_ANYSH_DIR="$(dirname "$(readlink -f "$0")")"
 source "$H_ANYSH_DIR/hidden/source.sh"
 H_VERBOSE= H_SOURCE_ENABLE='true' H_SOURCE_FORCE=
-h_source 'anysh' || exit 1
+h_source 'util' 'anysh' || exit 1
 
 #h_anysh_check_all_features_nodup || exit 1
 h_anysh_check_all_features_nodup
@@ -23,7 +23,7 @@ main() {
       deps="$(h_anysh_get_deps "$fpath")"
       deps="${deps:--}"
     fi
-    hash='-'
+    hash="$(h_md5 "$fpath")"
     echo "$feature$sep${deps// /,}$sep$hash" >> "$LIST_FILE"
   done < <(h_anysh_get_all_features '*')
 }

@@ -59,6 +59,7 @@ h_anysh_get_features() {
     if ((${#groups[@]} > 0)); then
       local _groups=("${groups[@]/#/^}")
       find "$H_FEATURES_DIR" -type f \( "${feature_opts[@]:1}" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \; | grep -Ev "$(h_join_elems '|' "${_groups[@]/%//}")"
+      return 0
     else
       find "$H_FEATURES_DIR" -type f \( "${feature_opts[@]:1}" \) -exec expr 'X{}' : "X$H_FEATURES_DIR/\(.*\)" \;
     fi
