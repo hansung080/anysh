@@ -209,6 +209,16 @@ h_repeat() {
   h_echo "$out"
 }
 
+h_setopt_if_not() {
+  h_is_zsh && ! setopt | grep -E "^$1$" > /dev/null && setopt "$1"
+}
+
+h_unsetopt_if_set() {
+  if h_is_zsh && [[ "$2" == '0' ]]; then
+    unsetopt "$1"
+  fi
+}
+
 h_move_no_overwrite() {
   if [ -e "$2" ]; then
     h_error -t "cannot overwrite: $1 -> $2"

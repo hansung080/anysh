@@ -71,10 +71,6 @@ h_anysh_get_all_features() {
   h_anysh_get_features "$@"
 }
 
-h_anysh_get_all_features_remote() {
-  :
-}
-
 __h_anysh_parse_feature() {
   dir="$(dirname "$feature")"
   if [[ "$dir" == '.' ]]; then
@@ -93,6 +89,54 @@ __h_anysh_parse_feature() {
   fi
 }
 
+__h_anysh_parse_fpath() {
+  local prefix
+  if [[ "$gname" == 'hidden' ]]; then
+    prefix="$H_ANYSH_DIR"
+  else
+    prefix="$H_FEATURES_DIR"
+  fi
+
+  if [ -f "$prefix/$dir/$fname.sh" ]; then
+    fpath="$prefix/$dir/$fname.sh"
+  elif [ -f "$prefix/$dir/.$fname.sh" ]; then
+    fpath="$prefix/$dir/.$fname.sh"
+  else
+    fpath=''
+  fi
+}
+
+h_anysh_download() {
+  if (($# < 1)); then
+    h_error 'usage: h_anysh_download <path> [<options...>]'
+    return 1
+  fi
+  h_github_download 'hansung080' 'anysh' 'main' "$@"
+}
+
+h_anysh_get_all_features_remote() {
+  (($# == 0)) && return 0
+  h_setopt_if_not 'globsubst'; local globsubst_ret="$?"
+  local feature dir base gname fname state deps hash sep=' ' target
+  while IFS="$sep" read -r feature deps hash; do
+    __h_anysh_parse_feature
+    for target in "$@"; do
+      if [[ "${target:0:1}" == ':' ]]; then
+        if [[ "$gname" == ${target:1} ]]; then
+          h_echo "$feature$sep$deps$sep$hash"
+          break
+        fi
+      else
+        if [[ "$fname" == $target ]]; then
+          h_echo "$feature$sep$deps$sep$hash"
+          break
+        fi
+      fi
+    done
+  done < <(h_anysh_download 'list.txt')
+  h_unsetopt_if_set 'globsubst' "$globsubst_ret"
+}
+
 h_anysh_get_deps() {
   grep -E '^ *h_source +' "$1" | sed 's/h_source//' | xargs echo
 }
@@ -100,22 +144,15 @@ h_anysh_get_deps() {
 h_anysh_ls() {
   (($# == 0)) && set -- '*'
   local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES'
-  local feature dir base gname fname state deps
-  local features=() sep=' ' gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}"
+  local feature dir base gname fname state deps sep=' '
+  local features=() gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}"
   while IFS= read -r feature; do
     __h_anysh_parse_feature
-    gname="${gname:--}"
     deps="$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")"
     deps="${deps:--}"
-    features+=("$gname$sep$fname$sep$state$sep${deps// /,}")
-    glen="${#gname}"
-    if ((glen > gmax)); then
-      gmax="$glen"
-    fi
-    flen="${#fname}"
-    if ((flen > fmax)); then
-      fmax="$flen"
-    fi
+    features+=("${gname:=-}$sep$fname$sep$state$sep${deps// /,}")
+    glen="${#gname}"; ((glen > gmax)) && gmax="$glen"
+    flen="${#fname}"; ((flen > fmax)) && fmax="$flen"
   done < <(h_anysh_get_features "$@")
 
   local gn fn sn
@@ -141,6 +178,48 @@ h_anysh_ls() {
 
 h_anysh_ls_remote() {
   (($# == 0)) && set -- '*'
+  local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES' t_sync='SYNC'
+  local feature dir base gname fname state fpath deps hash sync sep=' '
+  local features=() gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}" dmax="${#t_deps}" dlen
+  while IFS="$sep" read -r feature deps hash; do
+    __h_anysh_parse_feature
+    __h_anysh_parse_fpath
+    if [ -n "$fpath" ]; then
+      if [[ "$hash" == "$(h_md5 "$fpath")" ]]; then
+        sync='synced'
+      else
+        sync='not-synced'
+      fi
+    else
+      sync='not-installed'
+    fi
+    features+=("${gname:=-}$sep$fname$sep$state$sep$deps$sep$sync")
+    glen="${#gname}"; ((glen > gmax)) && gmax="$glen"
+    flen="${#fname}"; ((flen > fmax)) && fmax="$flen"
+    dlen="${#deps}"; ((dlen > dmax)) && dmax="$dlen"
+  done < <(h_anysh_get_all_features_remote "$@")
+
+  local gn fn sn dn
+  ((gn = gmax - ${#t_gname} + 2))
+  ((fn = fmax - ${#t_fname} + 2))
+  ((sn = smax - ${#t_state} + 2))
+  ((dn = dmax - ${#t_deps} + 2))
+  h_echo "$t_gname$(h_repeat ' ' "$gn")$t_fname$(h_repeat ' ' "$fn")$t_state$(h_repeat ' ' "$sn")$t_deps$(h_repeat ' ' "$dn")$t_sync"
+  ((${#features[@]} == 0)) && return 1
+
+  local style
+  while IFS="$sep" read -r gname fname state deps sync; do
+    ((gn = gmax - ${#gname} + 2))
+    ((fn = fmax - ${#fname} + 2))
+    ((sn = smax - ${#state} + 2))
+    ((dn = dmax - ${#deps} + 2))
+    if [[ "$sync" == 'not-synced' || "$sync" == 'not-installed' ]]; then
+      style="$H_RED"
+    else
+      style=''
+    fi
+    h_echo "$style$gname$(h_repeat ' ' "$gn")$fname$(h_repeat ' ' "$fn")$state$(h_repeat ' ' "$sn")$deps$(h_repeat ' ' "$dn")$sync$H_RESET"
+  done < <(IFS=$'\n'; h_echo "${features[*]}" | sort)
 }
 
 h_anysh_check_args_nonzero() {
