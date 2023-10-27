@@ -89,7 +89,7 @@ __h_anysh_parse_feature() {
   fi
 }
 
-__h_anysh_parse_path() {
+__h_anysh_set_path() {
   local prefix
   if [[ "$gname" == 'hidden' ]]; then
     rpath="$feature"
@@ -179,7 +179,7 @@ h_anysh_ls() {
 }
 
 h_anysh_is_synced() {
-  if [ -n "$1" ]; then
+  if [ -f "$1" ]; then
     if [[ "$2" == "$(h_md5 "$1")" ]]; then
       return 0
     else
@@ -207,7 +207,7 @@ h_anysh_ls_remote() {
   local features=() gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}" dmax="${#t_deps}" dlen
   while IFS="$sep" read -r feature deps hash; do
     __h_anysh_parse_feature
-    __h_anysh_parse_path
+    __h_anysh_set_path
     sync="$(h_anysh_get_sync "$lpath" "$hash")"
     features+=("${gname:=-}$sep$fname$sep$state$sep$deps$sep$sync")
     glen="${#gname}"; ((glen > gmax)) && gmax="$glen"
@@ -229,7 +229,7 @@ h_anysh_ls_remote() {
     ((fn = fmax - ${#fname} + 2))
     ((sn = smax - ${#state} + 2))
     ((dn = dmax - ${#deps} + 2))
-    if [[ "$sync" == 'not-synced' || "$sync" == 'not-installed' ]]; then
+    if [[ "$sync" != 'synced' ]]; then
       style="$H_RED"
     else
       style=''
@@ -247,82 +247,90 @@ h_anysh_check_args_nonzero() {
   return 0
 }
 
-h_anysh_on() {
-  h_anysh_check_args_nonzero "$@" || return 1
-  local feature dir base gname fname state
-  local dep=() deps=() targets=() out=''
-  while IFS= read -r feature; do
-    __h_anysh_parse_feature
-    if [[ "$1" != '*' ]]; then
-      h_split ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")" dep
-      deps+=("${dep[@]}")
-      targets+=("$fname")
-    fi
-    if [[ "$state" == 'on' ]]; then
-      out+=" $fname"
-      source "$H_FEATURES_DIR/$feature"
-    else
-      out+=" $H_BLUE$fname$H_RESET"
-      h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}" && \
-      source "$H_FEATURES_DIR/$dir/${base#.}"
-    fi
-  done < <(h_anysh_get_features "$@")
-
-  h_dedup_array deps
-  h_diff_array deps targets
-  local sep=$'\n'
-  while IFS= read -r feature; do
-    __h_anysh_parse_feature
-    if [[ "$state" == 'on' ]]; then
-      out+="$sep$fname"
-      source "$H_FEATURES_DIR/$feature"
-    else
-      out+="$sep$H_BLUE$fname$H_RESET"
-      h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}" && \
-      source "$H_FEATURES_DIR/$dir/${base#.}"
-    fi
-    sep=' '
-  done < <(h_anysh_get_features "${deps[@]}")
-
-  if [ -n "$out" ]; then
-    h_info "${out# }"
-  else
+h_anysh_print_result() {
+  if [ -z "$1" ]; then
+    shift
     local IFS=' '
     h_error -t "no features found: $*"
     return 1
   fi
+  h_info "${1# }"
+}
+
+__h_anysh_add_deps() {
+  if [[ "$1" != '*' ]]; then
+    local tdep=()
+    h_split "$2" "$3" tdep
+    tdeps+=("${tdep[@]}")
+    targets+=("$fname")
+  fi
+}
+
+__h_anysh_on_process() {
+  if [[ "$state" == 'on' ]]; then
+    out+="$osep$fname"
+    source "$H_FEATURES_DIR/$feature"
+  else
+    out+="$osep$H_BLUE$fname$H_RESET"
+    h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}" && \
+    source "$H_FEATURES_DIR/$dir/${base#.}"
+  fi
+  osep=' '
+}
+
+h_anysh_on() {
+  h_anysh_check_args_nonzero "$@" || return 1
+  local feature dir base gname fname state
+  local tdeps=() targets=() out='' osep=' '
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    __h_anysh_add_deps "$1" ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")"
+    __h_anysh_on_process
+  done < <(h_anysh_get_features "$@")
+
+  h_dedup_array tdeps
+  h_diff_array tdeps targets
+  osep=$'\n'
+  while IFS= read -r feature; do
+    __h_anysh_parse_feature
+    __h_anysh_on_process
+  done < <(h_anysh_get_features "${tdeps[@]}")
+
+  h_anysh_print_result "$out" "$@"
+}
+
+h_anysh_unset_funcs() {
+  local _path func
+  for _path in "$@"; do
+    while IFS= read -r func; do
+      unset -f "$func"
+    done < <(grep -E '^ *[A-Za-z0-9_-]+ *\(\)' "$_path" | sed 's/().*//' | tr -d ' ')
+  done
+}
+
+__h_anysh_off_process() {
+  if [[ "$state" == 'on' ]]; then
+    out+="$osep$H_YELLOW$fname$H_RESET"
+    h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/.$base" && \
+    h_is_sourced "$fname" && unsets+=("$H_FEATURES_DIR/$dir/.$base")
+  else
+    out+="$osep$fname"
+    h_is_sourced "$fname" && unsets+=("$H_FEATURES_DIR/$feature")
+  fi
+  osep=' '
 }
 
 h_anysh_off() {
   h_anysh_check_args_nonzero "$@" || return 1
   local feature dir base gname fname state
-  local out='' unsets=()
+  local out='' osep=' ' unsets=()
   while IFS= read -r feature; do
     __h_anysh_parse_feature
-    if [[ "$state" == 'on' ]]; then
-      out+=" $H_YELLOW$fname$H_RESET"
-      h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/.$base" && \
-      h_is_sourced "$fname" && unsets+=("$dir/.$base")
-    else
-      out+=" $fname"
-      h_is_sourced "$fname" && unsets+=("$feature")
-    fi
+    __h_anysh_off_process
   done < <(h_anysh_get_features "$@")
 
-  if [ -n "$out" ]; then
-    h_info "${out# }"
-  else
-    local IFS=' '
-    h_error -t "no features found: $*"
-    return 1
-  fi
-
-  local func
-  for feature in "${unsets[@]}"; do
-      while IFS= read -r func; do
-        unset -f "$func"
-      done < <(grep -E '^ *[A-Za-z0-9_-]+ *\(\)' "$H_FEATURES_DIR/$feature" | sed 's/().*//' | tr -d ' ')
-  done
+  h_anysh_print_result "$out" "$@" || return 1
+  h_anysh_unset_funcs "${unsets[@]}"
 }
 
 h_anysh_update_is_default() {
@@ -333,64 +341,97 @@ h_anysh_update_is_reset() {
   [ -n "$H_ANYSH_UPDATE_RESET" ]
 }
 
+__h_anysh_update_process() {
+  opath=''
+  if ! h_anysh_is_synced "$lpath" "$hash"; then
+    out+="$osep$H_RED$fname$H_RESET"
+    if h_anysh_update_is_default; then
+      rm -f "$lpath" && \
+      mkdir -p "$(dirname "$H_ANYSH_DIR/$rpath")" && \
+      h_anysh_download "$rpath" -o "$H_ANYSH_DIR/$rpath" && \
+      opath="$H_ANYSH_DIR/$rpath"
+    else
+      mkdir -p "$(dirname "$lpath")" && \
+      h_anysh_download "$rpath" -o "$lpath" && \
+      opath="$lpath"
+    fi
+  else
+    out+="$osep$fname"
+    opath="$lpath"
+  fi
+  if [ -n "$opath" ]; then
+    if [[ "$(basename "$opath")" == .* ]]; then
+      h_is_sourced "$fname" && unsets+=("$opath")
+    else
+      source "$opath"
+    fi
+  fi
+  osep=' '
+}
+
 h_anysh_update() {
-  h_anysh_check_args_nonzero "$@" || return 1
+  (($# == 0)) && set -- '*'
+  h_anysh_update_is_reset && rm -rf "$H_ANYSH_DIR"
+  local feature dir base gname fname state rpath lpath deps hash sep=' '
+  local tdeps=() targets=() out='' osep=' ' opath unsets=()
+  while IFS="$sep" read -r feature deps hash; do
+    __h_anysh_parse_feature
+    __h_anysh_set_path
+    __h_anysh_add_deps "$1" ',' "$deps"
+    __h_anysh_update_process
+  done < <(h_anysh_get_all_features_remote "$@")
+
+  h_dedup_array tdeps
+  h_diff_array tdeps targets
+  osep=$'\n'
+  while IFS="$sep" read -r feature deps hash; do
+    __h_anysh_parse_feature
+    __h_anysh_set_path
+    __h_anysh_update_process
+  done < <(h_anysh_get_all_features_remote "${tdeps[@]}")
+
+  h_anysh_print_result "$out" "$@" || return 1
+  h_anysh_unset_funcs "${unsets[@]}"
 }
 
 h_anysh_src_is_force() {
   [ -n "$H_ANYSH_SRC_FORCE" ]
 }
 
+__h_anysh_src_process() {
+  if [[ "$state" == 'on' ]]; then
+    out+="$osep$fname"
+    source "$H_FEATURES_DIR/$feature"
+  else
+    out+="$osep$H_YELLOW$fname$H_RESET"
+    if h_anysh_src_is_force; then
+      source "$H_FEATURES_DIR/$feature"
+    else
+      h_warn -t "$fname is off"
+    fi
+  fi
+  osep=' '
+}
+
 h_anysh_src() {
   h_anysh_check_args_nonzero "$@" || return 1
   local feature dir base gname fname state
-  local dep=() deps=() targets=() out=''
+  local tdeps=() targets=() out='' osep=' '
   while IFS= read -r feature; do
     __h_anysh_parse_feature
-    if [[ "$1" != '*' ]]; then
-      h_split ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")" dep
-      deps+=("${dep[@]}")
-      targets+=("$fname")
-    fi
-    if [[ "$state" == 'on' ]]; then
-      out+=" $fname"
-      source "$H_FEATURES_DIR/$feature"
-    else
-      out+=" $H_YELLOW$fname$H_RESET"
-      if h_anysh_src_is_force; then
-        source "$H_FEATURES_DIR/$feature"
-      else
-        h_warn -t "$fname is off"
-      fi
-    fi
+    __h_anysh_add_deps "$1" ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")"
+    __h_anysh_src_process
   done < <(h_anysh_get_features "$@")
 
-  h_dedup_array deps
-  h_diff_array deps targets
-  local sep=$'\n'
+  h_dedup_array tdeps
+  h_diff_array tdeps targets
+  osep=$'\n'
   while IFS= read -r feature; do
     __h_anysh_parse_feature
-    if [[ "$state" == 'on' ]]; then
-      out+="$sep$fname"
-      source "$H_FEATURES_DIR/$feature"
-    else
-      out+="$sep$H_YELLOW$fname$H_RESET"
-      if h_anysh_src_is_force; then
-        source "$H_FEATURES_DIR/$feature"
-      else
-        h_error -t "$fname is off"
-      fi
-    fi
-    sep=' '
-  done < <(h_anysh_get_features "${deps[@]}")
+    __h_anysh_src_process
+  done < <(h_anysh_get_features "${tdeps[@]}")
 
-  if [ -n "$out" ]; then
-    h_info "${out# }"
-  else
-    local IFS=' '
-    h_error -t "no features found: $*"
-    return 1
-  fi
+  h_anysh_print_result "$out" "$@"
 }
 
 h_anysh_check_all_features_nodup() {
@@ -430,11 +471,11 @@ h_anysh_help() {
   h_echo '  -v, --verbose  Display debug logs. Not used at the moment.'
   h_echo
   h_echo 'Usage by Command:'
-  h_echo '  anysh ls [<features...>]         List installed <features...>, or all features if <features...> not provided'
-  h_echo '  anysh ls-remote [<features...>]  List remote <features...> available for update, or all features if <features...> not provided'
+  h_echo '  anysh ls [<features...>]         List installed <features...>, or all features if no arguments'
+  h_echo '  anysh ls-remote [<features...>]  List remote <features...> available for update, or all features if no arguments'
   h_echo '  anysh on <features...>           Turn on <features...> and their dependencies'
   h_echo '  anysh off <features...>          Turn off <features...>'
-  h_echo '  anysh update <features...>       Update <features...> and their dependencies into the latest version'
+  h_echo '  anysh update [<features...>]     Update <features...> and their dependencies into the latest, or all features if no arguments'
   h_echo '    --default                      Update with the default state'
   h_echo '    --reset                        Remove and reinstall anysh'
   h_echo '  anysh src <features...>          Source <features...> and their dependencies, not-in-order and in-duplicate'
