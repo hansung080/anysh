@@ -3,6 +3,7 @@ __H_FEATURES_DIR="$H_ANYSH_DIR/features"
 __H_RESET=$'\033[0m'
 __H_RED_BOLD=$'\033[1;31m'
 __H_GREEN=$'\033[0;32m'
+__H_YELLOW=$'\033[0;33m'
 
 __h_is_verbose() {
   [ -n "$H_VERBOSE" ]
@@ -41,7 +42,7 @@ h_source() {
         continue
       fi
       if [[ "${base:0:1}" == '.' ]]; then
-        echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: $fname is off"
+        echo >&2 -e "${__H_YELLOW}warning${__H_RESET}: h_source: $fname is off"
         ret=1
         continue
       fi

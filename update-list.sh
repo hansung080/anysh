@@ -11,19 +11,19 @@ LIST_FILE="$H_ANYSH_DIR/list.txt"
 rm -f "$LIST_FILE"
 
 main() {
-  local feature gname fpath deps hash sep=' '
+  local feature gname lpath deps hash sep=' '
   while IFS= read -r feature; do
     gname="${feature%%/*}"
     [[ "$gname" == "$feature" ]] && gname=''
     if [[ "$gname" == 'hidden' ]]; then
-      fpath="$H_ANYSH_DIR/$feature"
+      lpath="$H_ANYSH_DIR/$feature"
       deps='-'
     else
-      fpath="$H_FEATURES_DIR/$feature"
-      deps="$(h_anysh_get_deps "$fpath")"
+      lpath="$H_FEATURES_DIR/$feature"
+      deps="$(h_anysh_get_deps "$lpath")"
       deps="${deps:--}"
     fi
-    hash="$(h_md5 "$fpath")" || hash='-'
+    hash="$(h_md5 "$lpath")" || hash='-'
     echo "$feature$sep${deps// /,}$sep$hash" >> "$LIST_FILE"
   done < <(h_anysh_get_all_features '*')
 }

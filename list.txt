@@ -1,4 +1,4 @@
-hidden/source.sh - aac751cb2642dabe77c83e1086451d38
+hidden/source.sh - 81df4f06821118239d9cefa7ae7f5537
 hidden/zoo/.zebra.sh - d41d8cd98f00b204e9800998ecf8427e
 .fruit_a_b_c-d-e-f:g:h:i/banana_a_b_c-d-e-f:g:h:i.sh - d41d8cd98f00b204e9800998ecf8427e
 .fruit_a_b_c-d-e-f:g:h:i/apple-a-b-c_d_e_f:g:h:i.sh - d41d8cd98f00b204e9800998ecf8427e
@@ -19,7 +19,7 @@ ext/getopt.sh util 614a9dccecebf67862dfab90e199db48
 .person/docker.sh util 6aab9ef91569ad3e0bfe7af92b0d12a5
 .person/alice.sh - d41d8cd98f00b204e9800998ecf8427e
 .animal/eagle.sh util 32354326f001bcfdc9e4278f8a328b9b
-.animal/fox.sh util 0313d04ca54430e3d9ac1e5c70810e82
+.animal/.fox.sh util 0313d04ca54430e3d9ac1e5c70810e82
 .animal/dog.sh util,path,getopt,make,cat 90643f11fd81ae4a51b3fd295867ffa4
 .animal/common/fish.sh util dcdaee2a9f9d0682d9d7c4bf86390140
 .animal/common/zebra.sh - d41d8cd98f00b204e9800998ecf8427e
@@ -29,5 +29,5 @@ common/util.sh - f0c3ef1e86d22554d2bdae7d4c0f58a3
 chris.sh - d41d8cd98f00b204e9800998ecf8427e
 docker.sh util b4629b2f77bf69d6b5b8644c9c32eda1
 alice.sh - d41d8cd98f00b204e9800998ecf8427e
-tool/anysh.sh util,getopt befed14a015b4b0f174006237da1a5d2
+tool/anysh.sh util,getopt dc6411cf7c5d2c2408987ae589136dba
 tool/bank.sh util d9199db2798ed940dc79268a1e289e6a

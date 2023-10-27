@@ -89,20 +89,22 @@ __h_anysh_parse_feature() {
   fi
 }
 
-__h_anysh_parse_fpath() {
+__h_anysh_parse_path() {
   local prefix
   if [[ "$gname" == 'hidden' ]]; then
+    rpath="$feature"
     prefix="$H_ANYSH_DIR"
   else
+    rpath="features/$feature"
     prefix="$H_FEATURES_DIR"
   fi
 
   if [ -f "$prefix/$dir/$fname.sh" ]; then
-    fpath="$prefix/$dir/$fname.sh"
+    lpath="$prefix/$dir/$fname.sh"
   elif [ -f "$prefix/$dir/.$fname.sh" ]; then
-    fpath="$prefix/$dir/.$fname.sh"
+    lpath="$prefix/$dir/.$fname.sh"
   else
-    fpath=''
+    lpath=''
   fi
 }
 
@@ -201,12 +203,12 @@ h_anysh_get_sync() {
 h_anysh_ls_remote() {
   (($# == 0)) && set -- '*'
   local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES' t_sync='SYNC'
-  local feature dir base gname fname state fpath deps hash sync sep=' '
+  local feature dir base gname fname state rpath lpath deps hash sync sep=' '
   local features=() gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}" dmax="${#t_deps}" dlen
   while IFS="$sep" read -r feature deps hash; do
     __h_anysh_parse_feature
-    __h_anysh_parse_fpath
-    sync="$(h_anysh_get_sync "$fpath" "$hash")"
+    __h_anysh_parse_path
+    sync="$(h_anysh_get_sync "$lpath" "$hash")"
     features+=("${gname:=-}$sep$fname$sep$state$sep$deps$sep$sync")
     glen="${#gname}"; ((glen > gmax)) && gmax="$glen"
     flen="${#fname}"; ((flen > fmax)) && fmax="$flen"
@@ -358,7 +360,7 @@ h_anysh_src() {
       if h_anysh_src_is_force; then
         source "$H_FEATURES_DIR/$feature"
       else
-        h_error -t "$fname is off"
+        h_warn -t "$fname is off"
       fi
     fi
   done < <(h_anysh_get_features "$@")
