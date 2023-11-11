@@ -72,18 +72,45 @@ h_error() {
   >&2 h_echo "$@"
 }
 
-h_shell() {
-  ps -p $$ | tail -1 | awk '{ print $4 }'
+h_command_by_pid() {
+  ps -p "$1" | tail -1 | awk '{ print $4 }'
 }
 
-h_shell_name() {
-  local sh
-  sh="$(h_shell)"
-  if [[ "${sh:0:1}" == '-' ]]; then
-    h_echo "${sh:1}"
+h_shell_by_pid() {
+  local cmd
+  cmd="$(h_command_by_pid "$1")"
+  if [[ "${cmd:0:1}" == '-' ]]; then
+    basename "${cmd:1}"
   else
-    basename "$sh"
+    basename "$cmd"
   fi
+}
+
+h_default_shell() {
+  basename "$SHELL"
+}
+
+h_current_shell() {
+  h_shell_by_pid "$$"
+}
+
+h_parent_shell() {
+  h_shell_by_pid "$PPID"
+}
+
+h_is_login_shell() {
+  if h_is_bash; then
+    shopt -q 'login_shell'
+  elif h_is_zsh; then
+    setopt | grep '^login$' > /dev/null
+  else
+    return 2
+  fi
+}
+
+h_is_login_shell_by_pid() {
+  [[ "$(h_command_by_pid "$1")" == -* ]] || \
+  ps -p "$1" | grep -E -- ' -[^ ]*l[^ ]* | -[^ ]*l[^ ]*$| --login | --login$' > /dev/null
 }
 
 h_trim_array() {
@@ -144,7 +171,7 @@ h_split_raw() {
 
     local _elem
     eval "$3"='()'
-    while read -rd "$1" _elem; do
+    while IFS= read -rd "$1" _elem; do
       eval "$3"+="('$_elem')"
     done < <(echo -n "$2$1")
   fi
@@ -209,8 +236,32 @@ h_repeat() {
   h_echo "$out"
 }
 
+h_which() {
+  if h_is_zsh; then
+    whence -p "$@"
+  else
+    which "$@"
+  fi
+}
+
+h_md5() {
+  local line
+  if h_which md5 > /dev/null; then
+    while IFS= read -r line; do
+      h_echo "${line##* }"
+    done < <(md5 "$@")
+  elif h_which md5sum > /dev/null; then
+    while IFS= read -r line; do
+      h_echo "${line%% *}"
+    done < <(md5sum "$@")
+  else
+    h_error -t 'command not found: md5, md5sum'
+    return 1
+  fi
+}
+
 h_setopt_if_not() {
-  h_is_zsh && ! setopt | grep -E "^$1$" > /dev/null && setopt "$1"
+  h_is_zsh && ! setopt | grep "^$1$" > /dev/null && setopt "$1"
 }
 
 h_unsetopt_if_set() {
@@ -225,22 +276,6 @@ h_move_no_overwrite() {
     return 1
   fi
   mv -n "$1" "$2"
-}
-
-h_md5() {
-  local line
-  if which md5 > /dev/null; then
-    while IFS= read -r line; do
-      h_echo "${line##* }"
-    done < <(md5 "$@")
-  elif which md5sum > /dev/null; then
-    while IFS= read -r line; do
-      h_echo "${line%% *}"
-    done < <(md5sum "$@")
-  else
-    h_error -t 'command not found: md5, md5sum'
-    return 1
-  fi
 }
 
 h_github_download() {

@@ -1,3 +1,4 @@
+hidden/init.sh - 81b20f412f676d236716dba66e707871
 hidden/source.sh - 81df4f06821118239d9cefa7ae7f5537
 hidden/zoo/.zebra.sh - d41d8cd98f00b204e9800998ecf8427e
 .fruit_a_b_c-d-e-f:g:h:i/banana_a_b_c-d-e-f:g:h:i.sh - d41d8cd98f00b204e9800998ecf8427e
@@ -24,8 +25,9 @@ ext/getopt.sh util 614a9dccecebf67862dfab90e199db48
 .animal/common/fish.sh util dcdaee2a9f9d0682d9d7c4bf86390140
 .animal/common/zebra.sh - d41d8cd98f00b204e9800998ecf8427e
 .animal/cat.sh util,path,getopt efa6dac79f97402c427e1442ad66700f
+common/read.sh util 7d5645f7de531c20b7ad771630dc1c12
 common/path.sh util 45bc761827dbd2cfeea91ef645ac6e46
-common/util.sh - f0c3ef1e86d22554d2bdae7d4c0f58a3
+common/util.sh - 628d6b5ac760a5a301e3d62bfa528fe3
 chris.sh - d41d8cd98f00b204e9800998ecf8427e
 docker.sh util b4629b2f77bf69d6b5b8644c9c32eda1
 alice.sh - d41d8cd98f00b204e9800998ecf8427e
