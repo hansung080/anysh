@@ -133,15 +133,15 @@ main() {
   shift $((OPTIND - 1))
 
   if [ -e "$ANYSH_DIR" ]; then
-    echo "> * The installation directory already exists: $(readlink -f "$ANYSH_DIR")"
-    confirm '>   Delete it and continue to install Anysh (yes/no) ? ' 'yes' || return 0
+    echo "=> The installation directory already exists: $(readlink -f "$ANYSH_DIR")"
+    confirm '   Delete it and continue to install Anysh (yes/no) ? ' 'yes' || return 0
     rm -rf "$ANYSH_DIR"
     echo
   fi
   mkdir -p "$ANYSH_DIR"
   PHYSICAL_ANYSH_DIR="$(readlink -f "$ANYSH_DIR")"
 
-  echo -n "Installing Anysh to $PHYSICAL_ANYSH_DIR ... "
+  echo -n "=> Installing Anysh to $PHYSICAL_ANYSH_DIR ... "
   local feature gname rpath
   while IFS=' ' read -r feature _ _; do
     gname="${feature%%/*}"
@@ -157,7 +157,7 @@ main() {
   echo 'done'
 
   echo
-  echo "To use Anysh, append the following code to \$HOME/$(shell_profile) and source it: "
+  echo "=> To use Anysh, append the following code to \$HOME/$(shell_profile) and source it: "
   blue "export H_ANYSH_DIR=\"$(replace_home_to_var "$PHYSICAL_ANYSH_DIR")\""
   blue '[ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh"'
 
