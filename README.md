@@ -20,8 +20,9 @@ Or, to install Anysh to the `<anysh dir>` you specified, run:
 curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' | bash -s -- -p <anysh dir>
 ```
 
-After installation, to use Anysh, append the following code to your shell profile (.bashrc, .bash_profile, .zshrc, etc) and source it.
-If you changed the Anysh directory, you must modify `export H_ANYSH_DIR='<anysh dir>'` in the following code:
+After installation, to use Anysh, append the following code to your shell profile such as .bashrc, .bash_profile, .zshrc
+, etc. and source it. If you changed the Anysh directory when installation, you must modify it as `export H_ANYSH_DIR='<anysh dir>'`
+in the following code:
 ```sh
 export H_ANYSH_DIR="$HOME/.anysh"
 [ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh"
