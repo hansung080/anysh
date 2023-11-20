@@ -105,7 +105,7 @@ check_optarg() {
 }
 
 usage() {
-  error "usage: install.sh [-p <install dir>]"
+  error "usage: install.sh [-p <anysh dir>]"
 }
 
 main() {
@@ -133,7 +133,7 @@ main() {
   shift $((OPTIND - 1))
 
   if [ -e "$ANYSH_DIR" ]; then
-    echo "=> The installation directory already exists: $(readlink -f "$ANYSH_DIR")"
+    echo "=> The Anysh directory already exists: $(readlink -f "$ANYSH_DIR")"
     confirm '   Delete it and continue to install Anysh (yes/no) ? ' 'yes' || return 0
     rm -rf "$ANYSH_DIR"
     echo
