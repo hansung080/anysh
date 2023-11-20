@@ -6,7 +6,7 @@ For instance, the cd function is extended from the cd command and additionally h
 turn on cd, you will use the cd with history tracking ability, and if you turn off cd, you will use the original cd.
 
 ## Supported Shells
-Anysh supports only the following shells at the moment. If you are using another shell, Some features of Anysh will not
+Anysh supports only the following shells at the moment. If you are using another shell, some features of Anysh will not
 work.
 - Bash
 - Zsh
@@ -23,7 +23,7 @@ curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/inst
 ```
 
 After installation, to use Anysh, append the following code to your shell profile such as .bashrc, .bash_profile, .zshrc
-, etc. and source it. If you specified the <anysh dir> when installation, you must modify it as `export H_ANYSH_DIR="<anysh dir>"`
+, etc. and source it. If you specified the `<anysh dir>` when installation, you must modify it as `export H_ANYSH_DIR="<anysh dir>"`
 in the following code:
 ```sh
 export H_ANYSH_DIR="$HOME/.anysh"
@@ -31,7 +31,7 @@ export H_ANYSH_DIR="$HOME/.anysh"
 ```
 
 ## How to use Anysh
-To learn how to use Anysh, run:
+To see how to use Anysh, run:
 ```sh
 anysh --help
 ```
