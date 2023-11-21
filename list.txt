@@ -31,5 +31,5 @@ common/util.sh - 628d6b5ac760a5a301e3d62bfa528fe3
 chris.sh - d41d8cd98f00b204e9800998ecf8427e
 docker.sh util b4629b2f77bf69d6b5b8644c9c32eda1
 alice.sh - d41d8cd98f00b204e9800998ecf8427e
-tool/anysh.sh util,getopt a13903f9a6721ed7f08e42760820e055
+tool/anysh.sh util,getopt 0e31f4dcdaa7afa661d6ad414db9cf67
 tool/bank.sh util d9199db2798ed940dc79268a1e289e6a

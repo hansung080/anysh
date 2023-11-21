@@ -345,7 +345,7 @@ __h_anysh_update_process() {
   opath=''
   if ! h_anysh_is_synced "$lpath" "$hash"; then
     out+="$osep$H_RED$fname$H_RESET"
-    if h_anysh_update_is_default; then
+    if h_anysh_update_is_default || [ -z "$lpath" ]; then
       rm -f "$lpath" && \
       mkdir -p "$(dirname "$H_ANYSH_DIR/$rpath")" && \
       h_anysh_download "$rpath" -o "$H_ANYSH_DIR/$rpath" && \
