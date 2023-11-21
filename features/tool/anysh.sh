@@ -100,9 +100,17 @@ __h_anysh_set_path() {
   fi
 
   if [ -f "$prefix/$dir/$fname.sh" ]; then
-    lpath="$prefix/$dir/$fname.sh"
+    if [[ "$dir" == '.' ]]; then
+      lpath="$prefix/$fname.sh"
+    else
+      lpath="$prefix/$dir/$fname.sh"
+    fi
   elif [ -f "$prefix/$dir/.$fname.sh" ]; then
-    lpath="$prefix/$dir/.$fname.sh"
+    if [[ "$dir" == '.' ]]; then
+      lpath="$prefix/.$fname.sh"
+    else
+      lpath="$prefix/$dir/.$fname.sh"
+    fi
   else
     lpath=''
   fi
