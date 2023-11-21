@@ -343,7 +343,20 @@ h_anysh_update_is_reset() {
 
 __h_anysh_update_process() {
   opath=''
-  if ! h_anysh_is_synced "$lpath" "$hash"; then
+  if h_anysh_is_synced "$lpath" "$hash"; then
+    if h_anysh_update_is_default && [[ "${lpath#$H_ANYSH_DIR}" != "$rpath" ]]; then
+      if [[ "$(basename "$rpath")" == .* ]]; then
+        out+="$osep$H_YELLOW$fname$H_RESET"
+      else
+        out+="$osep$H_BLUE$fname$H_RESET"
+      fi
+      h_move_no_overwrite "$lpath" "$H_ANYSH_DIR/$rpath" && \
+      opath="$H_ANYSH_DIR/$rpath"
+    else
+      out+="$osep$fname"
+      opath="$lpath"
+    fi
+  else
     out+="$osep$H_RED$fname$H_RESET"
     if h_anysh_update_is_default || [ -z "$lpath" ]; then
       rm -f "$lpath" && \
@@ -355,9 +368,6 @@ __h_anysh_update_process() {
       h_anysh_download "$rpath" -o "$lpath" && \
       opath="$lpath"
     fi
-  else
-    out+="$osep$fname"
-    opath="$lpath"
   fi
   if [ -n "$opath" ]; then
     if [[ "$(basename "$opath")" == .* ]]; then
