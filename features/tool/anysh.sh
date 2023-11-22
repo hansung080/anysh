@@ -352,7 +352,7 @@ h_anysh_update_is_reset() {
 __h_anysh_update_process() {
   opath=''
   if h_anysh_is_synced "$lpath" "$hash"; then
-    if h_anysh_update_is_default && [[ "${lpath#$H_ANYSH_DIR}" != "$rpath" ]]; then
+    if h_anysh_update_is_default && [[ "$(basename "$lpath")" != "$base" ]]; then
       if [[ "$(basename "$rpath")" == .* ]]; then
         out+="$osep$H_YELLOW$fname$H_RESET"
       else
