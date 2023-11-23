@@ -159,7 +159,7 @@ main() {
   echo
   echo "=> To use Anysh, append the following code to \$HOME/$(shell_profile) and source it: "
   blue "export H_ANYSH_DIR=\"$(replace_home_to_var "$PHYSICAL_ANYSH_DIR")\""
-  blue '[ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh"'
+  blue '[ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh" now'
 
   local newline=''
   if ! is_shell_supported "$(default_shell)"; then
