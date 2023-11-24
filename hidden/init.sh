@@ -9,6 +9,6 @@ h_init() {
   done < <(find "$H_ANYSH_DIR/hidden" "$H_ANYSH_DIR/features" -type f -name '[^.]*.sh' -print0)
 }
 
-if [[ "$1" == 'now' ]]; then
+if [[ "$1" == '--now' ]]; then
   h_init ''
 fi

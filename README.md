@@ -27,7 +27,7 @@ etc. and source it. If you specified the `<anysh dir>` when installation, you mu
 in the following code:
 ```sh
 export H_ANYSH_DIR="$HOME/.anysh"
-[ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh" now
+[ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh" --now
 ```
 
 ## How to use Anysh
