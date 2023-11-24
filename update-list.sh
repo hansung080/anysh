@@ -6,8 +6,7 @@ H_VERBOSE= H_SOURCE_ENABLE='true' H_SOURCE_FORCE=
 h_source 'util' 'anysh' || exit 1
 
 main() {
-  #h_anysh_check_all_features_nodup || exit 1
-  h_anysh_check_all_features_nodup
+  h_anysh_check_all_features_nodup || exit 1
   local list_file="$H_ANYSH_DIR/list.txt"
   rm -f "$list_file"
 
