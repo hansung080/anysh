@@ -105,14 +105,17 @@ check_optarg() {
 }
 
 usage() {
-  error "usage: install.sh [-p <anysh dir>]"
+  error "usage: install.sh [-f] [-p <anysh dir>]"
 }
 
 main() {
   local ANYSH_DIR="$HOME/.anysh" PHYSICAL_ANYSH_DIR
-  local opt='' OPTIND=1 OPTARG=''
-  while getopts ':p:' opt; do
+  local opt='' OPTIND=1 OPTARG='' opt_force=''
+  while getopts ':fp:' opt; do
     case "$opt" in
+      'f')
+        opt_force='true'
+        ;;
       'p')
         check_optarg "-$opt" "$OPTARG" usage || return 1
         ANYSH_DIR="$OPTARG"
@@ -132,11 +135,15 @@ main() {
 
   shift $((OPTIND - 1))
 
-  if [ -e "$ANYSH_DIR" ]; then
-    echo "=> The Anysh directory already exists: $(readlink -f "$ANYSH_DIR")"
-    confirm '   Delete it and continue to install Anysh (yes/no) ? ' 'yes' || return 0
+  if [ -n "$opt_force" ]; then
     rm -rf "$ANYSH_DIR"
-    echo
+  else
+    if [ -e "$ANYSH_DIR" ]; then
+      echo "=> The Anysh directory already exists: $(readlink -f "$ANYSH_DIR")"
+      confirm '   Delete it and continue to install Anysh (yes/no) ? ' 'yes' || return 0
+      rm -rf "$ANYSH_DIR"
+      echo
+    fi
   fi
   mkdir -p "$ANYSH_DIR"
   PHYSICAL_ANYSH_DIR="$(readlink -f "$ANYSH_DIR")"

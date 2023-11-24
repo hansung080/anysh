@@ -14,12 +14,12 @@ work.
 ## Install Anysh
 To install Anysh to `$HOME/.anysh`, run:
 ```sh
-curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' | bash
+curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' | bash -s -- -f
 ``` 
 
 Or, to install Anysh to the `<anysh dir>` you specified, run:
 ```sh
-curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' | bash -s -- -p <anysh dir>
+curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' | bash -s -- -fp <anysh dir>
 ```
 
 After installation, to use Anysh, append the following code to your shell profile such as .bashrc, .bash_profile, .zshrc,
