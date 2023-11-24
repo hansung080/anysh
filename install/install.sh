@@ -105,7 +105,7 @@ check_optarg() {
 }
 
 usage() {
-  error "usage: install.sh [-f] [-p <anysh dir>]"
+  error "usage: install.sh [-fp <anysh dir>]"
 }
 
 main() {
