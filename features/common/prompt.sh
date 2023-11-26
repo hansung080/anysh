@@ -7,7 +7,11 @@ h_set_prompt_short() {
     setopt 'promptsubst'
     PROMPT='%n@%{$(pwd)%${#PWD}G%}%# '
   else
-    export PS1='`whoami`@`pwd`$ '
+    if [[ "$(whoami)" == 'root' ]]; then
+      export PS1='`whoami`@`pwd`# '
+    else
+      export PS1='`whoami`@`pwd`$ '
+    fi
   fi
 }
 
@@ -29,7 +33,11 @@ h_set_prompt_long() {
     setopt 'promptsubst'
     PROMPT='%n@%m:%{$(pwd)%${#PWD}G%}%# '
   else
-    export PS1='`whoami`@`hostname`:`pwd`$ '
+    if [[ "$(whoami)" == 'root' ]]; then
+      export PS1='`whoami`@`hostname`:`pwd`# '
+    else
+      export PS1='`whoami`@`hostname`:`pwd`$ '
+    fi
   fi
 }
 
