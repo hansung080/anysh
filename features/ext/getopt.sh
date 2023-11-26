@@ -71,10 +71,6 @@ h_get_lopts() {
   fi
 }
 
-h_get_options_usage() {
-  h_error "Run 'h_get_options -h' for more information on the usage."
-}
-
 h_get_options_help() {
   h_echo 'Usage:'
   h_echo '  h_get_options [<options...>] [--] [<arguments...>]'
@@ -84,6 +80,10 @@ h_get_options_help() {
   h_echo '  -l <optstring>  Specify the long options to be recognized'
   h_echo '  -h              Display this help message'
   h_echo '  -V              Display the version of h_get_options'
+}
+
+h_get_options_usage() {
+  h_error "Run 'h_get_options -h' for more information on the usage."
 }
 
 h_get_options() {

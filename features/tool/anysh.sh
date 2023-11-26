@@ -473,15 +473,11 @@ h_anysh_check_all_features_nodup() {
   return 0
 }
 
-h_anysh_usage() {
-  h_error "Run 'anysh --help' for more information on the usage."
-}
-
 h_anysh_help() {
   h_echo 'Usage:'
   h_echo '  anysh [<options...>] <command> [<features...>]'
-  h_echo '    - Use :<groups...> instead of <features...> to specify groups.'
-  h_echo '    - Glob characters (* ? [ ]) can be used in <features...> or :<groups...> for pattern matching.'
+  h_echo '    * Use :<groups...> instead of <features...> to specify groups.'
+  h_echo '    * Glob characters (* ? [ ]) can be used in <features...> or :<groups...> for pattern matching.'
   h_echo
   h_echo 'Options:'
   h_echo '  -h, --help     Display this help message'
@@ -498,6 +494,10 @@ h_anysh_help() {
   h_echo '    --reset                        Remove and reinstall anysh'
   h_echo '  anysh src <features...>          Source <features...> and their dependencies, not-in-order and in-duplicate'
   h_echo '    -f, --force                    Allow to source off-feature'
+}
+
+h_anysh_usage() {
+  h_error "Run 'anysh --help' for more information on the usage."
 }
 
 anysh() {
