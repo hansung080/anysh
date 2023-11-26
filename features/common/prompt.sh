@@ -17,9 +17,9 @@ h_set_prompt_short_color() {
     PROMPT='%(!.%F{red}.%F{yellow})%n%f@%{$(pwd|grep --color=always /)%${#PWD}G%}%(!.%F{red}.)%#%f '
   else
     if [[ "$(whoami)" == 'root' ]]; then
-      export PS1='${H_RED}`whoami`${H_RESET}@`pwd|grep --color=always /`${H_RED}#${H_RESET} '
+      export PS1='${H_RED}`whoami`${H_RESET}@`pwd`${H_RED}#${H_RESET} '
     else
-      export PS1='${H_YELLOW}`whoami`${H_RESET}@`pwd|grep --color=always /`$ '
+      export PS1='${H_YELLOW}`whoami`${H_RESET}@`pwd`$ '
     fi
   fi
 }
@@ -39,9 +39,9 @@ h_set_prompt_long_color() {
     PROMPT='%(!.%F{red}.%F{yellow})%n%f@%F{yellow}%m%f:%{$(pwd|grep --color=always /)%${#PWD}G%}%(!.%F{red}.)%#%f '
   else
     if [[ "$(whoami)" == 'root' ]]; then
-      export PS1='${H_RED}`whoami`${H_RESET}@${H_YELLOW}`hostname`${H_RESET}:`pwd|grep --color=always /`${H_RED}#${H_RESET} '
+      export PS1='${H_RED}`whoami`${H_RESET}@${H_YELLOW}`hostname`${H_RESET}:`pwd`${H_RED}#${H_RESET} '
     else
-      export PS1='${H_YELLOW}`whoami`${H_RESET}@${H_YELLOW}`hostname`${H_RESET}:`pwd|grep --color=always /`$ '
+      export PS1='${H_YELLOW}`whoami`${H_RESET}@${H_YELLOW}`hostname`${H_RESET}:`pwd`$ '
     fi
   fi
 }
@@ -56,6 +56,7 @@ h_set_prompt_help() {
   h_echo '  long         Set prompt with format `whoami`@`hostname`:`pwd`$'
   h_echo '  long-color   Set prompt with format `whoami`@`hostname`:`pwd`$ and color'
   h_echo '  help         Display this help message'
+  h_echo '  * Default type is short if <type> is omitted'
   h_echo '  * In prompt, $ for Bash, % for Zsh, and # for root'
 }
 
