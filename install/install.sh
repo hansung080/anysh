@@ -67,7 +67,7 @@ is_login_shell_by_pid() {
   ps -p "$1" | grep -E -- ' -[^ ]*l[^ ]* | -[^ ]*l[^ ]*$| --login | --login$' > /dev/null
 }
 
-shell_profile() {
+shell_config() {
   case "$(parent_shell)" in
     'bash')
       if is_login_shell_by_pid "$PPID"; then
@@ -164,7 +164,7 @@ main() {
   echo 'done'
 
   echo
-  echo "=> To use Anysh, append the following code to \$HOME/$(shell_profile) and source it: "
+  echo "=> To use Anysh, append the following code to \$HOME/$(shell_config) and source it: "
   blue "export H_ANYSH_DIR=\"$(replace_home_to_var "$PHYSICAL_ANYSH_DIR")\""
   blue '[ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh" --now'
 
