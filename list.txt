@@ -1,4 +1,4 @@
-hidden/init.sh - 580fe96d588792f4052823c0fe76c5ac
+hidden/init.sh - e5dfcb0b1e63de4233970b9b8b5ba7fe
 hidden/source.sh - 81df4f06821118239d9cefa7ae7f5537
 ext/make.sh util b56ac56cf77b2245f137a6aec7070d40
 ext/getopt.sh util 9e3a5092b7fd1316a73f73f62569a2a6
