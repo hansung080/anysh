@@ -5,5 +5,5 @@ ext/getopt.sh util 9e3a5092b7fd1316a73f73f62569a2a6
 common/prompt.sh util 4646a0f325c9b1ddece8ced89f553dfb
 common/read.sh util 7d5645f7de531c20b7ad771630dc1c12
 common/path.sh util 45bc761827dbd2cfeea91ef645ac6e46
-common/util.sh - 628d6b5ac760a5a301e3d62bfa528fe3
+common/util.sh - d467fe6f72380b29d3126233572ef3bb
 tool/anysh.sh util,getopt 2a595ef2091141bcca248e1fc39d13fc

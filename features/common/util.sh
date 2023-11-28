@@ -98,6 +98,17 @@ h_parent_shell() {
   h_shell_by_pid "$PPID"
 }
 
+h_is_interactive_shell() {
+  if h_is_zsh; then
+    setopt | grep '^interactive$' > /dev/null
+  else
+    case "$-" in
+      *i*) return 0 ;;
+      *) return 1 ;;
+    esac
+  fi
+}
+
 h_is_login_shell() {
   if h_is_bash; then
     shopt -q 'login_shell'
