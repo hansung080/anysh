@@ -1,4 +1,6 @@
 : "${H_ANYSH_DIR:=$HOME/.anysh}"
+source "$H_ANYSH_DIR/hidden/callback.sh"
+
 __H_FEATURES_DIR="$H_ANYSH_DIR/features"
 __H_RESET=$'\033[0m'
 __H_RED_BOLD=$'\033[1;31m'
@@ -32,6 +34,7 @@ h_source() {
   done
 
   local feature base fname found='' ret=0 off
+  local H_ON_SOURCE=()
   while IFS= read -rd '' feature; do
     found='true'
     base="$(basename "$feature")"
@@ -48,10 +51,11 @@ h_source() {
       fi
     fi
 
-    source "$feature"
+    source "$feature" && h_register_on_source "$fname"
     off=''; [[ "${base:0:1}" == '.' ]] && off=' (off)'
     __h_is_verbose && echo -e "${__H_GREEN}debug${__H_RESET}: h_source: $fname just sourced$off: $feature"
   done < <(find "$__H_FEATURES_DIR" -type f \( "${opts[@]:1}" \) -print0)
+  h_call_on_source
 
   if [ -z "$found" ]; then
     local IFS=' '

@@ -1,9 +1,11 @@
-hidden/init.sh - e5dfcb0b1e63de4233970b9b8b5ba7fe
-hidden/source.sh - 81df4f06821118239d9cefa7ae7f5537
+hidden/init.sh - c122a8d4dec83ea09e8b23e2906575c0
+hidden/source.sh - 8c1b2d13002292ed0023b2aa34afb040
+hidden/callback.sh - 480197c63b47a59c2930176f2ecbc789
+alias/help.sh util 65b2a256e83a02e5019139d806051d94
 ext/make.sh util b56ac56cf77b2245f137a6aec7070d40
 ext/getopt.sh util 9e3a5092b7fd1316a73f73f62569a2a6
 common/prompt.sh util 4646a0f325c9b1ddece8ced89f553dfb
 common/read.sh util 7d5645f7de531c20b7ad771630dc1c12
 common/path.sh util 45bc761827dbd2cfeea91ef645ac6e46
 common/util.sh - d467fe6f72380b29d3126233572ef3bb
-tool/anysh.sh util,getopt 2a595ef2091141bcca248e1fc39d13fc
+tool/anysh.sh util,getopt fcb5417784d24ee304b77e0a174a5ed2

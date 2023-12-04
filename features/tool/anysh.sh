@@ -277,11 +277,11 @@ __h_anysh_add_deps() {
 __h_anysh_on_process() {
   if [[ "$state" == 'on' ]]; then
     out+="$osep$fname"
-    source "$H_FEATURES_DIR/$feature"
+    source "$H_FEATURES_DIR/$feature" && h_register_on_source "$fname"
   else
     out+="$osep$H_BLUE$fname$H_RESET"
     h_move_no_overwrite "$H_FEATURES_DIR/$feature" "$H_FEATURES_DIR/$dir/${base#.}" && \
-    source "$H_FEATURES_DIR/$dir/${base#.}"
+    source "$H_FEATURES_DIR/$dir/${base#.}" && h_register_on_source "$fname"
   fi
   osep=' '
 }
@@ -290,6 +290,7 @@ h_anysh_on() {
   h_anysh_check_args_nonzero "$@" || return 1
   local feature dir base gname fname state
   local tdeps=() targets=() out='' osep=' '
+  local H_ON_SOURCE=()
   while IFS= read -r feature; do
     __h_anysh_parse_feature
     __h_anysh_add_deps "$1" ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")"
@@ -304,10 +305,12 @@ h_anysh_on() {
     __h_anysh_on_process
   done < <(h_anysh_get_features "${tdeps[@]}")
 
+  h_call_on_source
   h_anysh_print_result "$out" "$@"
 }
 
 h_anysh_unset_funcs() {
+  h_call_on_unset "$@"
   local _path func
   for _path in "$@"; do
     while IFS= read -r func; do
@@ -381,7 +384,7 @@ __h_anysh_update_process() {
     if [[ "$(basename "$opath")" == .* ]]; then
       h_is_sourced "$fname" && unsets+=("$opath")
     else
-      source "$opath"
+      source "$opath" && h_register_on_source "$fname"
     fi
   fi
   osep=' '
@@ -392,6 +395,7 @@ h_anysh_update() {
   h_anysh_update_is_reset && rm -rf "$H_ANYSH_DIR"
   local feature dir base gname fname state rpath lpath deps hash sep=' '
   local tdeps=() targets=() out='' osep=' ' opath unsets=()
+  local H_ON_SOURCE=()
   while IFS="$sep" read -r feature deps hash; do
     __h_anysh_parse_feature
     __h_anysh_set_path
@@ -408,6 +412,7 @@ h_anysh_update() {
     __h_anysh_update_process
   done < <(h_anysh_get_all_features_remote "${tdeps[@]}")
 
+  h_call_on_source
   h_anysh_print_result "$out" "$@" || return 1
   h_anysh_unset_funcs "${unsets[@]}"
 }
@@ -419,11 +424,11 @@ h_anysh_src_is_force() {
 __h_anysh_src_process() {
   if [[ "$state" == 'on' ]]; then
     out+="$osep$fname"
-    source "$H_FEATURES_DIR/$feature"
+    source "$H_FEATURES_DIR/$feature" && h_register_on_source "$fname"
   else
     out+="$osep$H_YELLOW$fname$H_RESET"
     if h_anysh_src_is_force; then
-      source "$H_FEATURES_DIR/$feature"
+      source "$H_FEATURES_DIR/$feature" && h_register_on_source "$fname"
     else
       h_warn -t "$fname is off"
     fi
@@ -435,6 +440,7 @@ h_anysh_src() {
   h_anysh_check_args_nonzero "$@" || return 1
   local feature dir base gname fname state
   local tdeps=() targets=() out='' osep=' '
+  local H_ON_SOURCE=()
   while IFS= read -r feature; do
     __h_anysh_parse_feature
     __h_anysh_add_deps "$1" ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")"
@@ -449,6 +455,7 @@ h_anysh_src() {
     __h_anysh_src_process
   done < <(h_anysh_get_features "${tdeps[@]}")
 
+  h_call_on_source
   h_anysh_print_result "$out" "$@"
 }
 
