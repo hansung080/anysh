@@ -17,7 +17,7 @@ h_on_unset_help() {
 h_alias_help() {
   h_is_zsh || return 1
   unalias run-help 2> /dev/null
-  autoload run-help
+  autoload -Uz run-help
   if [[ "$(h_which 'zsh')" == "$(command brew --prefix)"* ]]; then
     HELPDIR="$(command brew --prefix)/share/zsh/help"
   else
@@ -29,6 +29,7 @@ h_alias_help() {
 h_unalias_help() {
   h_is_zsh || return 1
   unalias help 2> /dev/null
+  unset -f run-help 2> /dev/null
   HELPDIR=
   alias run-help='man'
 }
