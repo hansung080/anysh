@@ -15,7 +15,7 @@ h_on_unset_help() {
 }
 
 h_alias_help() {
-  h_is_zsh || return 1
+  h_is_zsh || return 0
   unalias run-help 2> /dev/null
   autoload -Uz run-help
   if [[ "$(h_which 'zsh')" == "$(command brew --prefix)"* ]]; then
@@ -27,7 +27,7 @@ h_alias_help() {
 }
 
 h_unalias_help() {
-  h_is_zsh || return 1
+  h_is_zsh || return 0
   unalias help 2> /dev/null
   unset -f run-help 2> /dev/null
   HELPDIR=
