@@ -9,4 +9,4 @@ common/prompt.sh util 4646a0f325c9b1ddece8ced89f553dfb
 common/read.sh util 7d5645f7de531c20b7ad771630dc1c12
 common/path.sh util 45bc761827dbd2cfeea91ef645ac6e46
 common/util.sh - d467fe6f72380b29d3126233572ef3bb
-tool/anysh.sh util,getopt fcb5417784d24ee304b77e0a174a5ed2
+tool/anysh.sh util,getopt 29a87ac91c3fb21e7bebbe816b322f49

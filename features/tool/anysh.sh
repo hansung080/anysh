@@ -504,7 +504,7 @@ h_anysh_help() {
 }
 
 h_anysh_usage() {
-  h_error "Run 'anysh --help' for more information on the usage."
+  h_error "Run 'anysh -h' for more information on the usage."
 }
 
 anysh() {
