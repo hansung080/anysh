@@ -6,7 +6,7 @@ ext/make.sh util b56ac56cf77b2245f137a6aec7070d40
 ext/getopt.sh util 9e3a5092b7fd1316a73f73f62569a2a6
 ext/cd.sh util 6b9cd3362b960c4aecc9d925c346844f
 common/prompt.sh util 4646a0f325c9b1ddece8ced89f553dfb
-common/read.sh util 7d5645f7de531c20b7ad771630dc1c12
+common/read.sh util 3b36ba946cb98467b1d5f144ef727033
 common/path.sh util 45bc761827dbd2cfeea91ef645ac6e46
-common/util.sh - d467fe6f72380b29d3126233572ef3bb
+common/util.sh - 2ba7ecb7e9d50e6320f60166b1ceac2b
 tool/anysh.sh util,getopt 29a87ac91c3fb21e7bebbe816b322f49

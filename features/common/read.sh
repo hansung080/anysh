@@ -6,17 +6,18 @@ h_is_read_sourced() {
   return 0
 }
 
-h_read_ext() {
+h_read() {
   local cmd
   if cmd="$(h_which read)"; then
     "$cmd" "$@"
   else
-    h_error -t 'command not found: read'
+    h_warn -t 'command not found: read'
+    read "$@"
   fi
 }
 
 h_pause() {
-  IFS= h_read_ext -rsn 1 -p "${1-Press any key to continue...}"
+  IFS= h_read -rsn 1 -p "${1-Press any key to continue...}"
 }
 
 h_confirm() {

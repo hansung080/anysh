@@ -48,7 +48,7 @@ h_is_whitespace() {
 }
 
 h_echo() {
-  echo -e "$@"
+  echo "$@"
 }
 
 h_debug() {
