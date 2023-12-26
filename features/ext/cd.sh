@@ -2,6 +2,10 @@
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
+H_CD_DEFAULT_SIZE='16'
+: "${H_CD_SIZE:=$H_CD_DEFAULT_SIZE}"
+: "${H_CD_DUP:=}"
+
 h_is_cd_sourced() {
   return 0
 }
@@ -23,7 +27,7 @@ h_dirs_check_index() {
     return 1
   fi
   if h_is_zsh; then
-    (cd "$opt" &> /dev/null)
+    (builtin cd "$opt" &> /dev/null)
   else
     dirs "$opt" &> /dev/null
   fi
@@ -90,15 +94,15 @@ h_dirs_zsh() {
     h_dirs_check_index "$opt_n" || return 1
     if [[ -n "$opt_l" ]]; then
       if [[ -n "$opt_v" ]]; then
-        ({ cd "$opt_n" > /dev/null && pwd; } | sed "1 s/^/$(h_dirs_get_index "$opt_n")\t/")
+        ({ builtin cd "$opt_n" > /dev/null && pwd; } | sed "1 s/^/$(h_dirs_get_index "$opt_n")\t/")
       else
-        (cd "$opt_n" > /dev/null && pwd)
+        (builtin cd "$opt_n" > /dev/null && pwd)
       fi
     else
       if [[ -n "$opt_v" ]]; then
-        (cd "$opt_n" | sed "1 s/^/$(h_dirs_get_index "$opt_n")\t/")
+        (builtin cd "$opt_n" | sed "1 s/^/$(h_dirs_get_index "$opt_n")\t/")
       else
-        (cd "$opt_n")
+        (builtin cd "$opt_n")
       fi
     fi
   fi
@@ -168,4 +172,92 @@ h_dirs() {
   else
     dirs "$@"
   fi
+}
+
+h_cd_check_optarg() {
+  if [[ -z "$2" || "$2" == -* ]]; then
+    h_error -t "option $1 requires an argument"
+    [ -n "$3" ] && "$3"
+    return 1
+  fi
+  return 0
+}
+
+h_cd_get_optarg() {
+  local arg
+  if [[ "$1" == *=* ]]; then
+    arg="${1#*=}"
+  else
+    arg="$2"
+  fi
+  h_cd_check_optarg "${1%%=*}" "$arg" "$3" || return 1
+  echo "$arg"
+}
+
+h_cd_help() {
+  h_echo 'Usage:'
+  h_echo '  cd [<options...>] [<dir>]'
+  h_echo
+  h_echo 'Options:'
+  h_echo '  * All options must be passed as the first argument in the command line.'
+  h_echo
+  h_echo '  --helpx            Display this help message'
+  h_echo '  ++                 Display all directories with their index of the directory stack'
+  h_echo '  +<index>           Change the current directory to a directory identified by <index>. e.g. +0 identifies the top directory'
+  h_echo '  -<inverted index>  Change the current directory to a directory identified by <inverted index>. e.g. -0 identifies the bottom directory'
+  h_echo '  --config           Display the current configuration'
+  h_echo "  --size <size>      Resize the directory stack to <size>, default: $H_CD_DEFAULT_SIZE"
+  h_echo '  --dup              Enable duplication in the directory stack, default: no-dup'
+  h_echo '  --no-dup           Disable duplication in the directory stack'
+  h_echo '  --clear            Clear the directory stack'
+}
+
+h_cd_usage() {
+  h_error "Run 'cd --helpx' for more information on the usage."
+}
+
+cd() {
+  local args=() size
+  while (($# > 0)); do
+    case "$1" in
+      '--helpx')
+        h_cd_help
+        return ;;
+      '++')
+        dirs -v
+        return ;;
+      '--config')
+        h_echo "H_CD_DEFAULT_SIZE=$H_CD_DEFAULT_SIZE"
+        h_echo "H_CD_SIZE=$H_CD_SIZE"
+        h_echo "H_CD_DUP=$H_CD_DUP"
+        return ;;
+      '--size'|'--size='*)
+        size="$(h_cd_get_optarg "$1" "$2" h_cd_usage)" || return 1
+        [[ "$size" =~ ^[0-9]+$ ]] || { h_error -t "<size> must be a number"; return 1; }
+        ((size >= 1)) || { h_error -t "<size> must be greater than or equal to 1"; return 1; }
+        H_CD_SIZE="$size"
+        return ;;
+      '--dup')
+        H_CD_DUP='true'
+        return ;;
+      '--no-dup')
+        H_CD_DUP=
+        return ;;
+      '--clear')
+        dirs -c
+        return ;;
+      '--')
+        args+=("$@")
+        break ;;
+      *)
+        if [[ "$1" =~ ^[+-][0-9]+$ ]]; then
+          args+=("$(h_dirs -l "$1")") || return 1
+        else
+          args+=("$1")
+        fi
+        shift ;;
+    esac
+  done
+
+  builtin cd "${args[@]}"
 }

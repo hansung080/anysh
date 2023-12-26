@@ -96,7 +96,7 @@ anysh_download() {
 }
 
 check_optarg() {
-  if [[ "$2" == -* ]] || [ -z "$2" ]; then
+  if [[ -z "$2" || "$2" == -* ]]; then
     error -t "check_optarg: option $1 requires an argument"
     [ -n "$3" ] && "$3"
     return 1
