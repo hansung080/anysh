@@ -271,6 +271,10 @@ h_md5() {
   fi
 }
 
+h_is_setopt() {
+  h_is_zsh && setopt | grep "^$1$" > /dev/null
+}
+
 h_setopt_if_not() {
   h_is_zsh && ! setopt | grep "^$1$" > /dev/null && setopt "$1"
 }

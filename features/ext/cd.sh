@@ -2,7 +2,7 @@
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
-H_CD_DEFAULT_SIZE='16'
+H_CD_DEFAULT_SIZE=20
 : "${H_CD_SIZE:=$H_CD_DEFAULT_SIZE}"
 : "${H_CD_DUP:=}"
 
@@ -174,6 +174,44 @@ h_dirs() {
   fi
 }
 
+h_popd() {
+  if h_is_zsh; then
+    local cur="$PWD" prev="$OLDPWD"
+    popd "$@" || return
+    if [[ "$cur" == "$PWD" ]]; then
+      OLDPWD="$prev"
+    fi
+  else
+    popd "$@"
+  fi
+}
+
+h_popd_from() {
+  local index="${1:-1}" sign="${2:-+}" dir
+  while h_popd "$sign$index" &> /dev/null; do
+    :
+  done
+}
+
+h_cd_dedup_by() {
+  local target="$1" index="${2:-1}" sign="${3:-+}" dir
+  while dir="$(h_dirs -l "$sign$index" 2> /dev/null)"; do
+    if [[ "$dir" == "$target" ]]; then
+      h_popd "$sign$index" > /dev/null
+    else
+      ((++index))
+    fi
+  done
+}
+
+h_cd_dedup() {
+  local sign="${1:-+}" index=0 dir
+  while dir="$(h_dirs -l "$sign$index" 2> /dev/null)"; do
+    h_cd_dedup_by "$dir" "$((index + 1))" "$sign"
+    ((++index))
+  done
+}
+
 h_cd_check_optarg() {
   if [[ -z "$2" || "$2" == -* ]]; then
     h_error -t "option $1 requires an argument"
@@ -199,12 +237,12 @@ h_cd_help() {
   h_echo '  cd [<options...>] [<dir>]'
   h_echo
   h_echo 'Options:'
-  h_echo '  * All options must be passed as the first argument in the command line.'
-  h_echo
   h_echo '  --helpx            Display this help message'
   h_echo '  ++                 Display all directories with their index of the directory stack'
+  h_echo '  +++                Display all directories with their index of the directory stack, in long format instead of using ~ expression'
   h_echo '  +<index>           Change the current directory to a directory identified by <index>. e.g. +0 identifies the top directory'
   h_echo '  -<inverted index>  Change the current directory to a directory identified by <inverted index>. e.g. -0 identifies the bottom directory'
+  h_echo '  -                  Change the current directory to the previous directory'
   h_echo '  --config           Display the current configuration'
   h_echo "  --size <size>      Resize the directory stack to <size>, default: $H_CD_DEFAULT_SIZE"
   h_echo '  --dup              Enable duplication in the directory stack, default: no-dup'
@@ -217,7 +255,10 @@ h_cd_usage() {
 }
 
 cd() {
-  local args=() size
+  local args=() arg size z=0 sign='+'
+  h_is_zsh && z=1
+  h_is_setopt 'pushdminus' && sign='-'
+
   while (($# > 0)); do
     case "$1" in
       '--helpx')
@@ -226,6 +267,13 @@ cd() {
       '++')
         dirs -v
         return ;;
+      '+++')
+        dirs -l -v
+        return ;;
+      '-')
+        [ -z "$OLDPWD" ] && { h_error -t 'OLDPWD not set'; return 1; }
+        args+=("$OLDPWD")
+        shift ;;
       '--config')
         h_echo "H_CD_DEFAULT_SIZE=$H_CD_DEFAULT_SIZE"
         h_echo "H_CD_SIZE=$H_CD_SIZE"
@@ -236,18 +284,26 @@ cd() {
         [[ "$size" =~ ^[0-9]+$ ]] || { h_error -t "<size> must be a number"; return 1; }
         ((size >= 1)) || { h_error -t "<size> must be greater than or equal to 1"; return 1; }
         H_CD_SIZE="$size"
+        h_popd_from "$size" "$sign"
         return ;;
       '--dup')
         H_CD_DUP='true'
         return ;;
       '--no-dup')
         H_CD_DUP=
+        h_cd_dedup "$sign"
         return ;;
       '--clear')
         dirs -c
         return ;;
       '--')
-        args+=("$@")
+        for arg in "$@"; do
+          if [[ "$arg" == '-' ]]; then
+            args+=("$PWD/-")
+          else
+            args+=("$arg")
+          fi
+        done
         break ;;
       *)
         if [[ "$1" =~ ^[+-][0-9]+$ ]]; then
@@ -259,5 +315,19 @@ cd() {
     esac
   done
 
-  builtin cd "${args[@]}"
+  if [ ${#args[@]} -eq 0 ] || [[ ${#args[@]} -eq 1 && "${args[0 + z]}" == '--' ]]; then
+    args+=("$HOME")
+  fi
+
+  if [[ "${args[0 + z]}" == -[^-]* ]]; then
+    builtin cd "${args[@]}" || return
+  else
+    pushd "${args[@]}" > /dev/null || return
+  fi
+
+  if [ -z "$H_CD_DUP" ]; then
+    h_cd_dedup_by "$PWD" 1 "$sign"
+  fi
+
+  h_popd "$sign$H_CD_SIZE" &> /dev/null || true
 }
