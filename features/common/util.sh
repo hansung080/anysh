@@ -11,6 +11,17 @@ h_is_util_sourced() {
   return 0
 }
 
+h_on_unset_util() {
+  unset -v H_RESET
+  unset -v H_BLACK
+  unset -v H_BLACK_BOLD
+  unset -v H_RED
+  unset -v H_RED_BOLD
+  unset -v H_GREEN
+  unset -v H_YELLOW
+  unset -v H_BLUE
+}
+
 h_is_verbose() {
   [ -n "$H_VERBOSE" ]
 }

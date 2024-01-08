@@ -10,6 +10,12 @@ h_is_cd_sourced() {
   return 0
 }
 
+h_on_unset_cd() {
+  unset -v H_CD_DEFAULT_SIZE
+  unset -v H_CD_SIZE
+  unset -v H_CD_DUP
+}
+
 h_dirs_size() {
   (
     local count=1

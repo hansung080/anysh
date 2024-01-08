@@ -10,6 +10,12 @@ h_is_anysh_sourced() {
   return 0
 }
 
+h_on_unset_anysh() {
+  unset -v H_ANYSH_VERSION
+  unset -v H_HIDDEN_DIR
+  unset -v H_FEATURES_DIR
+}
+
 h_anysh_get_hidden() {
   (($# == 0)) && return 0
   local target opts=()
