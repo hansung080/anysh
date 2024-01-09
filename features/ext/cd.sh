@@ -326,7 +326,11 @@ cd() {
   fi
 
   if [[ "${args[0 + z]}" == -[^-]* ]]; then
-    builtin cd "${args[@]}" || return
+    pushd . > /dev/null
+    if ! builtin cd "${args[@]}"; then
+      h_popd > /dev/null
+      return 1
+    fi
   else
     pushd "${args[@]}" > /dev/null || return
   fi
