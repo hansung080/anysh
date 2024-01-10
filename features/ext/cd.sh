@@ -182,14 +182,13 @@ h_dirs() {
 
 h_popd() {
   if h_is_zsh; then
-    local cur="$PWD" prev="$OLDPWD"
-    popd "$@" || return
-    if [[ "$cur" == "$PWD" ]]; then
-      OLDPWD="$prev"
+    local sign='+'
+    h_is_setopt 'pushdminus' && sign='-'
+    if ! { [ $# -eq 0 ] || [[ $# -eq 1 && "$1" == "${sign}0" ]] || [[ $# -eq 1 && "$1" == '-q' ]] || [[ $# -eq 2 && "$1" == '-q' && "$2" == "${sign}0" ]]; }; then
+      local OLDPWD
     fi
-  else
-    popd "$@"
   fi
+  popd "$@"
 }
 
 h_popd_from() {
@@ -326,9 +325,11 @@ cd() {
   fi
 
   if [[ "${args[0 + z]}" == -[^-]* ]]; then
+    local prev="$OLDPWD"
     pushd . > /dev/null
     if ! builtin cd "${args[@]}"; then
-      h_popd > /dev/null
+      popd > /dev/null
+      OLDPWD="$prev"
       return 1
     fi
   else
