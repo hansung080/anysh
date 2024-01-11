@@ -27,7 +27,7 @@ h_dirs_size() {
 }
 
 # NOTE: If a directory entry exists in the stack and the directory doesn't exist in the file system,
-#       Zsh will fails (This is a bug.), but other shells will succeeds.
+#       Zsh will fail (This is a bug.), but other shells will succeed.
 h_dirs_check_index() {
   local opt="$1"
   if [[ ! "$opt" =~ ^[+-][0-9]+$ ]]; then
@@ -170,7 +170,7 @@ h_dirs_zsh2() {
 }
 
 # NOTE: If a directory entry exists in the stack and the directory doesn't exist in the file system,
-#       Zsh will fails (This is a bug.), but other shells will succeeds.
+#       Zsh will fail (This is a bug.), but other shells will succeed.
 h_dirs() {
   if h_is_zsh; then
     h_dirs_zsh "$@"
