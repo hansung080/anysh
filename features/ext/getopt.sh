@@ -121,7 +121,7 @@ h_get_options() {
 
   shift $((OPTIND - 1))
 
-  local opt='' OPTIND=1 OPTARG='' args=() out='' err=' --'
+  local opt='' OPTIND=1 OPTARG='' args=() out='' err=' --' ret=0
   while ((OPTIND <= $#)); do
     case "${!OPTIND}" in
       --)
@@ -156,13 +156,11 @@ h_get_options() {
     case "$opt" in
       '?')
         h_error "h_get_options: illegal option $OPTARG"
-        h_echo "$err"
-        return 1
+        ret=1
         ;;
       ':')
         h_error "h_get_options: option $OPTARG requires an argument"
-        h_echo "$err"
-        return 1
+        ret=1
         ;;
       *)
         out+=" $opt${OPTARG+ '$OPTARG'}"
@@ -175,8 +173,8 @@ h_get_options() {
   else
     out+=" -- ${args[*]}"
   fi
-
   h_echo "$out"
+  return "$ret"
 }
 
 h_is_gnu_getopt() {
