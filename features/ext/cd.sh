@@ -216,26 +216,6 @@ h_cd_dedup() {
   done
 }
 
-h_cd_check_optarg() {
-  if [[ -z "$2" || "$2" == -* ]]; then
-    h_error -t "option $1 requires an argument"
-    [ -n "$3" ] && "$3"
-    return 1
-  fi
-  return 0
-}
-
-h_cd_get_optarg() {
-  local arg
-  if [[ "$1" == *=* ]]; then
-    arg="${1#*=}"
-  else
-    arg="$2"
-  fi
-  h_cd_check_optarg "${1%%=*}" "$arg" "$3" || return 1
-  echo "$arg"
-}
-
 h_cd_help() {
   h_echo 'Usage:'
   h_echo '  cd [<options...>] [<dir>]'
@@ -284,8 +264,12 @@ cd() {
         h_echo "H_CD_DUP=$H_CD_DUP"
         return ;;
       '--size'|'--size='*)
-        size="$(h_cd_get_optarg "$1" "$2" h_cd_usage)" || return 1
-        [[ "$size" =~ ^[0-9]+$ ]] || { h_error -t "<size> must be a number"; return 1; }
+        if [[ "$1" == *=* ]]; then
+          size="${1#*=}"
+        else
+          size="$2"
+        fi
+        h_check_optarg_number "${1%%=*}" "$size" h_cd_usage || return 1
         ((size >= 1)) || { h_error -t "<size> must be greater than or equal to 1"; return 1; }
         H_CD_SIZE="$size"
         h_popd_from "$size" "$sign"

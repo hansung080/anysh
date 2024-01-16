@@ -95,9 +95,9 @@ anysh_download() {
   curl -fsSL "https://raw.githubusercontent.com/hansung080/anysh/main/$_path" "$@"
 }
 
-check_optarg() {
-  if [[ -z "$2" || "$2" == -* ]]; then
-    error -t "check_optarg: option $1 requires an argument"
+check_optarg_notdash_notnull() {
+  if [[ "$2" == -* || -z "$2" ]]; then
+    error -t "option $1 requires an argument"
     [ -n "$3" ] && "$3"
     return 1
   fi
@@ -117,7 +117,7 @@ main() {
         opt_force='true'
         ;;
       'p')
-        check_optarg "-$opt" "$OPTARG" usage || return 1
+        check_optarg_notdash_notnull "-$opt" "$OPTARG" usage || return 1
         ANYSH_DIR="$OPTARG"
         ;;
       '?')

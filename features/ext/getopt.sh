@@ -6,15 +6,6 @@ h_is_getopt_sourced() {
   return 0
 }
 
-h_check_optarg() {
-  if [[ "$2" == -* ]]; then
-    h_error "h_check_optarg: option $1 requires an argument"
-    [ -n "$3" ] && "$3"
-    return 1
-  fi
-  return 0
-}
-
 h_get_lopts() {
   local _opts _name="$2"
   IFS=',' read -ra _opts <<< "$1"
@@ -91,11 +82,11 @@ h_get_options() {
   while getopts ':o:l:hV' opt; do
     case "$opt" in
       'o')
-        h_check_optarg "-$opt" "$OPTARG" h_get_options_usage || return 2
+        h_check_optarg_notdash "-$opt" "$OPTARG" h_get_options_usage || return 2
         sopts="$OPTARG"
         ;;
       'l')
-        h_check_optarg "-$opt" "$OPTARG" h_get_options_usage || return 2
+        h_check_optarg_notdash "-$opt" "$OPTARG" h_get_options_usage || return 2
         lopts="$OPTARG"
         ;;
       'h')

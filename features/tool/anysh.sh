@@ -16,6 +16,18 @@ h_on_unset_anysh() {
   unset -v H_FEATURES_DIR
 }
 
+h_anysh_update_is_default() {
+  [ -n "$H_ANYSH_UPDATE_DEFAULT" ]
+}
+
+h_anysh_update_is_reset() {
+  [ -n "$H_ANYSH_UPDATE_RESET" ]
+}
+
+h_anysh_src_is_force() {
+  [ -n "$H_ANYSH_SRC_FORCE" ]
+}
+
 h_anysh_get_hidden() {
   (($# == 0)) && return 0
   local target opts=()
@@ -350,14 +362,6 @@ h_anysh_off() {
   h_anysh_unset_funcs "${unsets[@]}"
 }
 
-h_anysh_update_is_default() {
-  [ -n "$H_ANYSH_UPDATE_DEFAULT" ]
-}
-
-h_anysh_update_is_reset() {
-  [ -n "$H_ANYSH_UPDATE_RESET" ]
-}
-
 __h_anysh_update_process() {
   opath=''
   if h_anysh_is_synced "$lpath" "$hash"; then
@@ -421,10 +425,6 @@ h_anysh_update() {
   h_call_on_source
   h_anysh_print_result "$out" "$@" || return 1
   h_anysh_unset_funcs "${unsets[@]}"
-}
-
-h_anysh_src_is_force() {
-  [ -n "$H_ANYSH_SRC_FORCE" ]
 }
 
 __h_anysh_src_process() {

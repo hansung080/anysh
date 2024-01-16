@@ -135,17 +135,6 @@ h_is_login_shell_by_pid() {
   ps -p "$1" | grep -E -- ' -[^ ]*l[^ ]* | -[^ ]*l[^ ]*$| --login | --login$' > /dev/null
 }
 
-h_trim_array() {
-  local _name="${2:-$1}" _elem
-  eval set -- '"${'"$1"'[@]}"'
-  eval "$_name"='()'
-  for _elem in "$@"; do
-    if [ -n "$_elem" ]; then
-      eval "$_name"+="('$_elem')"
-    fi
-  done
-}
-
 # If null fields don't exist, h_split, h_split_trim_ws, h_split_trim, and h_split_raw will have the same behavior.
 # Otherwise, In Bash h_split and h_split_trim_ws, In Zsh h_split and h_split_raw will have the same behavior.
 # NOTE: Thus, if separator is whitespace and null fields exist, h_split will behave in a different way in Bash and Zsh, so h_split must not be used.
@@ -226,6 +215,34 @@ h_in_elems() {
     [[ "$elem" == "$target" ]] && return 0
   done
   return 1
+}
+
+h_delete_one_array() {
+  local _target="$1" _name="${3:-$2}" _elem _deleted=''
+  eval set -- '"${'"$2"'[@]}"'
+  eval "$_name"='()'
+  for _elem in "$@"; do
+    if [[ -n "$_deleted" || "$_elem" != "$_target" ]]; then
+      eval "$_name"+="('$_elem')"
+    else
+      _deleted='true'
+    fi
+  done
+}
+
+h_delete_all_array() {
+  local _target="$1" _name="${3:-$2}" _elem
+  eval set -- '"${'"$2"'[@]}"'
+  eval "$_name"='()'
+  for _elem in "$@"; do
+    if [[ "$_elem" != "$_target" ]]; then
+      eval "$_name"+="('$_elem')"
+    fi
+  done
+}
+
+h_trim_array() {
+  h_delete_all_array '' "$1" "$2"
 }
 
 h_dedup_array() {
@@ -312,6 +329,42 @@ h_github_download() {
   local user="$1" repo="$2" branch="$3" _path="$4"
   shift 4
   curl -fsSL "https://raw.githubusercontent.com/$user/$repo/$branch/$_path" "$@"
+}
+
+h_check_optarg_notdash() {
+  if [[ "$2" == -* ]]; then
+    h_error -t "option $1 requires an argument"
+    [ -n "$3" ] && "$3"
+    return 1
+  fi
+  return 0
+}
+
+h_check_optarg_notdash_notnull() {
+  if [[ "$2" == -* || -z "$2" ]]; then
+    h_error -t "option $1 requires an argument"
+    [ -n "$3" ] && "$3"
+    return 1
+  fi
+  return 0
+}
+
+h_check_optarg_notnull() {
+  if [ -z "$2" ]; then
+    h_error -t "option $1 requires an argument"
+    [ -n "$3" ] && "$3"
+    return 1
+  fi
+  return 0
+}
+
+h_check_optarg_number() {
+  if [[ ! "$2" =~ ^[0-9]+$ ]]; then
+    h_error -t "option $1 requires a number"
+    [ -n "$3" ] && "$3"
+    return 1
+  fi
+  return 0
 }
 
 h_test_style() {

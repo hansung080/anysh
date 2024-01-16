@@ -6,6 +6,43 @@ h_is_make_sourced() {
   return 0
 }
 
+h_make_is_bin() {
+  [ -n "$H_MAKE_BIN" ]
+}
+
+h_make_is_lib() {
+  [ -n "$H_MAKE_LIB" ]
+}
+
+h_make_is_project() {
+  [ -n "$H_MAKE_PROJECT" ]
+}
+
+h_make_is_all() {
+  [ -n "$H_MAKE_ALL" ]
+}
+
+h_make_new_check_options() {
+  local opts=()
+  [ -n "$H_MAKE_PROJECT" ] && opts+=('--project')
+  [ -n "$H_MAKE_ALL" ] && opts+=('--all')
+  [ -n "$__verbose" ] && opts+=('-v | --verbose')
+  [ -n "$H_MAKE_ARGS_BOOL" ] && opts+=('--args')
+  [ -n "$H_MAKE_OLD_PROJECT_BOOL" ] && opts+=('--old-project')
+  [ -n "$H_MAKE_NEW_PROJECT_BOOL" ] && opts+=('--new-project')
+  [ -n "$__static" ] && opts+=('--new-project')
+
+  if ((${#opts[@]} > 0)); then
+    h_error -t "invalid options: $(h_join_elems ',' "${opts[@]}")"
+    return 1
+  fi
+  return 0
+}
+
+h_make_update_is_none() {
+  [[ -z "$H_MAKE_BIN" && -z "$H_MAKE_LIB" && -z "$H_MAKE_PROJECT" && -z "$H_MAKE_ALL" ]]
+}
+
 h_make_check_args() {
   local project="$1"
   local type="$2"
@@ -55,6 +92,10 @@ h_make_new() {
   fi
 }
 
+h_make_status() {
+  :
+}
+
 h_make_update() {
   local project="$1"
   local type="$2"
@@ -65,8 +106,6 @@ h_make_update() {
   local makefile="$type.mk"
   curl -fsSL "https://raw.githubusercontent.com/hansung080/study/master/c/examples/make-sample/$makefile" | sed "s/make-sample/$project/g" > "$makefile"
 }
-
-alias makev='make __verbose=true'
 
 h_make_help() {
   h_echo 'Usage:'
@@ -107,4 +146,100 @@ h_make_help() {
 
 h_make_usage() {
   h_error "Run 'make --helpx' for more information on the usage."
+}
+
+make() {
+  local H_MAKE_BIN=
+  local H_MAKE_LIB=
+  local H_MAKE_PROJECT=
+  local H_MAKE_ALL=
+  local __verbose=
+  local __args=
+  local __old_project=
+  local __new_project=
+  local __static=
+  local H_MAKE_ARGS_BOOL=
+  local H_MAKE_OLD_PROJECT_BOOL=
+  local H_MAKE_NEW_PROJECT_BOOL=
+
+  local args=()
+  while (($# > 0)); do
+    case "$1" in
+      '--helpx')
+        h_make_help
+        return ;;
+      '--bin')
+        H_MAKE_BIN='true'
+        shift ;;
+      '--lib')
+        H_MAKE_LIB='true'
+        shift ;;
+      '--project')
+        H_MAKE_PROJECT='true'
+        shift ;;
+      '--all')
+        H_MAKE_ALL='true'
+        shift ;;
+      '-v'|'--verbose')
+        __verbose='true'
+        shift ;;
+      '--args'|'--args='*)
+        H_MAKE_ARGS_BOOL='true'
+        if [[ "$1" == *=* ]]; then
+          __args="${1#*=}"
+          shift
+        else
+          __args="$2"
+          h_check_optarg_notdash_notnull "$1" "$__args" h_make_usage || return 1
+          shift 2
+        fi
+        ;;
+      '--old-project'|'--old-project='*)
+        H_MAKE_OLD_PROJECT_BOOL='true'
+        if [[ "$1" == *=* ]]; then
+          __old_project="${1#*=}"
+          h_check_optarg_notnull "${1%%=*}" "$__old_project" h_make_usage || return 1
+          shift
+        else
+          __old_project="$2"
+          h_check_optarg_notdash_notnull "$1" "$__old_project" h_make_usage || return 1
+          shift 2
+        fi
+        ;;
+      '--new-project')
+        H_MAKE_NEW_PROJECT_BOOL='true'
+        if [[ "$1" == *=* ]]; then
+          __new_project="${1#*=}"
+          h_check_optarg_notnull "${1%%=*}" "$__new_project" h_make_usage || return 1
+          shift
+        else
+          __new_project="$2"
+          h_check_optarg_notdash_notnull "$1" "$__new_project" h_make_usage || return 1
+          shift 2
+        fi
+        ;;
+      '--static')
+        __static='true'
+        shift ;;
+      '--')
+        args+=("$@")
+        break ;;
+      *)
+        args+=("$1")
+        shift ;;
+    esac
+  done
+
+  local z=0
+  h_is_zsh && z=1
+  if [[ "${args[0 + z]}" == 'new' || "${args[0 + z]}" == 'status' || "${args[0 + z]}" == 'update' ]]; then
+    h_delete_one_array '--' args
+  fi
+
+  case "${args[0 + z]}" in
+    'new')    h_make_new "${args[@]:1}" ;;
+    'status') h_make_status "${args[@]:1}" ;;
+    'update') h_make_update "${args[@]:1}" ;;
+    *)        command make "${args[@]}" ;;
+  esac
 }
