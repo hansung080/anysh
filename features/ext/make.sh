@@ -246,7 +246,7 @@ make() {
         fi
         H_MAKE_OLD_PROJECT_ARG="$optarg"
         ;;
-      '--new-project')
+      '--new-project'|'--new-project='*)
         H_MAKE_NEW_PROJECT='true'
         if [[ "$1" == *=* ]]; then
           optarg="${1#*=}"
