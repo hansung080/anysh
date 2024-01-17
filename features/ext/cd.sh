@@ -239,7 +239,7 @@ h_cd_usage() {
 }
 
 cd() {
-  local args=() arg size z=0 sign='+'
+  local args=() arg optarg='' z=0 sign='+'
   h_is_zsh && z=1
   h_is_setopt 'pushdminus' && sign='-'
 
@@ -265,14 +265,14 @@ cd() {
         return ;;
       '--size'|'--size='*)
         if [[ "$1" == *=* ]]; then
-          size="${1#*=}"
+          optarg="${1#*=}"
         else
-          size="$2"
+          optarg="$2"
         fi
-        h_check_optarg_number "${1%%=*}" "$size" h_cd_usage || return 1
-        ((size >= 1)) || { h_error -t "<size> must be greater than or equal to 1"; return 1; }
-        H_CD_SIZE="$size"
-        h_popd_from "$size" "$sign"
+        h_check_optarg_number "${1%%=*}" "$optarg" h_cd_usage || return 1
+        ((optarg >= 1)) || { h_error -t "<size> must be greater than or equal to 1"; return 1; }
+        H_CD_SIZE="$optarg"
+        h_popd_from "$optarg" "$sign"
         return ;;
       '--dup')
         H_CD_DUP='true'

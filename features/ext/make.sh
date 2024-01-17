@@ -22,25 +22,32 @@ h_make_is_all() {
   [ -n "$H_MAKE_ALL" ]
 }
 
-h_make_new_check_options() {
+h_make_update_is_none() {
+  [[ -z "$H_MAKE_BIN" && -z "$H_MAKE_LIB" && -z "$H_MAKE_PROJECT" && -z "$H_MAKE_ALL" ]]
+}
+
+h_make_check_options() {
   local opts=()
+  [ -n "$H_MAKE_BIN" ] && opts+=('--bin')
+  [ -n "$H_MAKE_LIB" ] && opts+=('--lib')
   [ -n "$H_MAKE_PROJECT" ] && opts+=('--project')
   [ -n "$H_MAKE_ALL" ] && opts+=('--all')
-  [ -n "$__verbose" ] && opts+=('-v | --verbose')
-  [ -n "$H_MAKE_ARGS_BOOL" ] && opts+=('--args')
-  [ -n "$H_MAKE_OLD_PROJECT_BOOL" ] && opts+=('--old-project')
-  [ -n "$H_MAKE_NEW_PROJECT_BOOL" ] && opts+=('--new-project')
-  [ -n "$__static" ] && opts+=('--new-project')
+  [ -n "$H_MAKE_VERBOSE" ] && opts+=('--verbose(-v)')
+  [ -n "$H_MAKE_ARGS" ] && opts+=('--args')
+  [ -n "$H_MAKE_OLD_PROJECT" ] && opts+=('--old-project')
+  [ -n "$H_MAKE_NEW_PROJECT" ] && opts+=('--new-project')
+  [ -n "$H_MAKE_STATIC" ] && opts+=('--static')
+
+  local arg
+  for arg in "$@"; do
+    h_delete_array "$arg" opts
+  done
 
   if ((${#opts[@]} > 0)); then
-    h_error -t "invalid options: $(h_join_elems ',' "${opts[@]}")"
+    h_error -t "invalid options: $(h_join_elems ' ' "${opts[@]}")"
     return 1
   fi
   return 0
-}
-
-h_make_update_is_none() {
-  [[ -z "$H_MAKE_BIN" && -z "$H_MAKE_LIB" && -z "$H_MAKE_PROJECT" && -z "$H_MAKE_ALL" ]]
 }
 
 h_make_check_args() {
@@ -73,7 +80,19 @@ int main(int argc, char* argv[]) {
   h_echo "$content"
 }
 
+h_make_new_usage() {
+  h_error 'usage: make new <project> [--bin | --lib]'
+}
+
 h_make_new() {
+  h_make_check_options '--bin' '--lib' || { h_make_new_usage; return 1; }
+  (($# == 0)) && { h_error -t 'argument <project> required'; h_make_new_usage; return 1; }
+  (($# > 1)) && { h_error -t "too many arguments: $(h_join_elems ' ' "$@")"; h_make_new_usage; return 1; }
+
+  # DELETE ME
+  h_info -t "h_make_new: $(h_join_elems ' ' "$@")"
+  return
+
   local project="$1"
   local type="$2"
   if ! h_make_check_args "$project" "$type" 'h_make_new'; then
@@ -92,11 +111,30 @@ h_make_new() {
   fi
 }
 
+h_make_status_usage() {
+  h_error 'usage: make status'
+}
+
 h_make_status() {
-  :
+  h_make_check_options || { h_make_status_usage; return 1; }
+  (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_status_usage; return 1; }
+
+  # DELETE ME
+  h_info -t "h_make_status: $(h_join_elems ' ' "$@")"
+}
+
+h_make_update_usage() {
+  h_error 'usage: make update [--bin | --lib | --project | --all]'
 }
 
 h_make_update() {
+  h_make_check_options '--bin' '--lib' '--project' '--all' || { h_make_update_usage; return 1; }
+  (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_update_usage; return 1; }
+
+  # DELETE ME
+  h_info -t "h_make_update: $(h_join_elems ' ' "$@")"
+  return
+
   local project="$1"
   local type="$2"
   if ! h_make_check_args "$project" "$type" 'h_make_update'; then
@@ -153,16 +191,16 @@ make() {
   local H_MAKE_LIB=
   local H_MAKE_PROJECT=
   local H_MAKE_ALL=
-  local __verbose=
-  local __args=
-  local __old_project=
-  local __new_project=
-  local __static=
-  local H_MAKE_ARGS_BOOL=
-  local H_MAKE_OLD_PROJECT_BOOL=
-  local H_MAKE_NEW_PROJECT_BOOL=
+  local H_MAKE_VERBOSE=
+  local H_MAKE_ARGS=
+  local H_MAKE_ARGS_ARG=
+  local H_MAKE_OLD_PROJECT=
+  local H_MAKE_OLD_PROJECT_ARG=
+  local H_MAKE_NEW_PROJECT=
+  local H_MAKE_NEW_PROJECT_ARG=
+  local H_MAKE_STATIC=
 
-  local args=()
+  local args=() optarg=''
   while (($# > 0)); do
     case "$1" in
       '--helpx')
@@ -181,45 +219,48 @@ make() {
         H_MAKE_ALL='true'
         shift ;;
       '-v'|'--verbose')
-        __verbose='true'
+        H_MAKE_VERBOSE='true'
         shift ;;
       '--args'|'--args='*)
-        H_MAKE_ARGS_BOOL='true'
+        H_MAKE_ARGS='true'
         if [[ "$1" == *=* ]]; then
-          __args="${1#*=}"
+          optarg="${1#*=}"
           shift
         else
-          __args="$2"
-          h_check_optarg_notdash_notnull "$1" "$__args" h_make_usage || return 1
+          optarg="$2"
+          h_check_optarg_notdash_notnull "$1" "$optarg" h_make_usage || return 1
           shift 2
         fi
+        H_MAKE_ARGS_ARG="$optarg"
         ;;
       '--old-project'|'--old-project='*)
-        H_MAKE_OLD_PROJECT_BOOL='true'
+        H_MAKE_OLD_PROJECT='true'
         if [[ "$1" == *=* ]]; then
-          __old_project="${1#*=}"
-          h_check_optarg_notnull "${1%%=*}" "$__old_project" h_make_usage || return 1
+          optarg="${1#*=}"
+          h_check_optarg_notnull "${1%%=*}" "$optarg" h_make_usage || return 1
           shift
         else
-          __old_project="$2"
-          h_check_optarg_notdash_notnull "$1" "$__old_project" h_make_usage || return 1
+          optarg="$2"
+          h_check_optarg_notdash_notnull "$1" "$optarg" h_make_usage || return 1
           shift 2
         fi
+        H_MAKE_OLD_PROJECT_ARG="$optarg"
         ;;
       '--new-project')
-        H_MAKE_NEW_PROJECT_BOOL='true'
+        H_MAKE_NEW_PROJECT='true'
         if [[ "$1" == *=* ]]; then
-          __new_project="${1#*=}"
-          h_check_optarg_notnull "${1%%=*}" "$__new_project" h_make_usage || return 1
+          optarg="${1#*=}"
+          h_check_optarg_notnull "${1%%=*}" "$optarg" h_make_usage || return 1
           shift
         else
-          __new_project="$2"
-          h_check_optarg_notdash_notnull "$1" "$__new_project" h_make_usage || return 1
+          optarg="$2"
+          h_check_optarg_notdash_notnull "$1" "$optarg" h_make_usage || return 1
           shift 2
         fi
+        H_MAKE_NEW_PROJECT_ARG="$optarg"
         ;;
       '--static')
-        __static='true'
+        H_MAKE_STATIC='true'
         shift ;;
       '--')
         args+=("$@")
@@ -230,16 +271,38 @@ make() {
     esac
   done
 
-  local z=0
-  h_is_zsh && z=1
-  if [[ "${args[0 + z]}" == 'new' || "${args[0 + z]}" == 'status' || "${args[0 + z]}" == 'update' ]]; then
-    h_delete_one_array '--' args
+  set -- "${args[@]}"
+
+  if [[ "$1" == 'new' || "$1" == 'status' || "$1" == 'update' ]]; then
+    args=()
+    while (($# > 0)); do
+      case "$1" in
+        --)
+          shift
+          args+=("$@")
+          break ;;
+        -*)
+          h_error -t "invalid option: $1"
+          h_make_usage
+          return 1 ;;
+        *)
+          args+=("$1")
+          shift ;;
+      esac
+    done
+    set -- "${args[@]}"
   fi
 
-  case "${args[0 + z]}" in
-    'new')    h_make_new "${args[@]:1}" ;;
-    'status') h_make_status "${args[@]:1}" ;;
-    'update') h_make_update "${args[@]:1}" ;;
-    *)        command make "${args[@]}" ;;
+  case "$1" in
+    'new')    h_make_new "${@:2}" ;;
+    'status') h_make_status "${@:2}" ;;
+    'update') h_make_update "${@:2}" ;;
+    *)
+      __verbose="$H_MAKE_VERBOSE" \
+      __args="$H_MAKE_ARGS_ARG" \
+      __old_project="$H_MAKE_OLD_PROJECT_ARG" \
+      __new_project="$H_MAKE_NEW_PROJECT_ARG" \
+      __static="$H_MAKE_STATIC" \
+      command make "$@" ;;
   esac
 }

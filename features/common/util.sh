@@ -217,6 +217,17 @@ h_in_elems() {
   return 1
 }
 
+h_delete_array() {
+  local _target="$1" _name="${3:-$2}" _elem
+  eval set -- '"${'"$2"'[@]}"'
+  eval "$_name"='()'
+  for _elem in "$@"; do
+    if [[ "$_elem" != "$_target" ]]; then
+      eval "$_name"+="('$_elem')"
+    fi
+  done
+}
+
 h_delete_one_array() {
   local _target="$1" _name="${3:-$2}" _elem _deleted=''
   eval set -- '"${'"$2"'[@]}"'
@@ -230,19 +241,8 @@ h_delete_one_array() {
   done
 }
 
-h_delete_all_array() {
-  local _target="$1" _name="${3:-$2}" _elem
-  eval set -- '"${'"$2"'[@]}"'
-  eval "$_name"='()'
-  for _elem in "$@"; do
-    if [[ "$_elem" != "$_target" ]]; then
-      eval "$_name"+="('$_elem')"
-    fi
-  done
-}
-
 h_trim_array() {
-  h_delete_all_array '' "$1" "$2"
+  h_delete_array '' "$1" "$2"
 }
 
 h_dedup_array() {
