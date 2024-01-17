@@ -150,7 +150,7 @@ h_make_help() {
   h_echo '  make [<options...>] [<targets...>]'
   h_echo
   h_echo 'Options:'
-  h_echo '  --helpx        Display this help message'
+  h_echo '  --helpx  Display this help message'
   h_echo
   h_echo 'Usage by Targets:'
   h_echo '  make new <project>   Create a <project>, default: --bin'
