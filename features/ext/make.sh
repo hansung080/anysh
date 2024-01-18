@@ -86,7 +86,7 @@ h_make_new() {
   fi
 
   if [ -e "$project" ]; then
-    h_error -t "$project already exists"
+    h_error -t "\`$project\` already exists"
     return 1
   fi
 
@@ -103,7 +103,7 @@ h_make_new() {
   fi
   h_make_c_main "$project-test" > "$project/test/main.c"
 
-  h_info "created a $type project '$project'"
+  h_info "Created a $type project \`$project\`"
 }
 
 h_make_status_usage() {
@@ -114,18 +114,26 @@ h_make_status() {
   h_make_check_options || { h_make_status_usage; return 1; }
   (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_status_usage; return 1; }
 
-  local project makefiles=('bin.mk' 'lib.mk' 'project.mk') makefile hash sync style
+  local makefiles=('bin.mk' 'lib.mk' 'project.mk') makefile fmax=0 flen
+  for makefile in "${makefiles[@]}"; do
+    if [ -f "$makefile" ]; then
+      flen="${#makefile}"; ((flen > fmax)) && fmax="$flen"
+    fi
+  done
+
+  local project hash sync fn style
   project="$(basename "$(pwd -P)")"
   for makefile in "${makefiles[@]}"; do
     if [ -f "$makefile" ]; then
       hash="$(h_make_download "c-project/$makefile" | sed "s/c-project/$project/g" | h_md5)"
       sync="$(h_get_sync "$makefile" "$hash")"
+      ((fn = fmax - ${#makefile} + 2))
       if [[ "$sync" != 'synced' ]]; then
         style="$H_RED"
       else
         style=''
       fi
-      h_echo "$style$makefile\t$sync$H_RESET"
+      h_echo "$style$makefile$(h_repeat ' ' "$fn")$sync$H_RESET"
     fi
   done
 }
@@ -158,7 +166,11 @@ h_make_update() {
     h_make_download "c-project/$makefile" | sed "s/c-project/$project/g" > "$makefile"
   done
 
-  h_info "updated makefiles: $(h_join_elems ' ' "${makefiles[@]}")"
+  if ((${#makefiles[@]} > 0)); then
+    h_info "Updated $(h_join_elems ' ' "${makefiles[@]}")"
+  else
+    h_info 'Updated nothing'
+  fi
 }
 
 h_make_help() {
