@@ -50,23 +50,12 @@ h_make_check_options() {
   return 0
 }
 
-h_make_check_args() {
-  local project="$1"
-  local type="$2"
-  local usage="usage: $3 <project> [bin | lib]"
-
-  if [[ "$project" == '' ]]; then
-    h_echo -e "$H_ERROR: <project> not provided"
-    h_echo "$usage"
+h_make_download() {
+  if (($# < 1)); then
+    h_error 'usage: h_make_download <path> [<options...>]'
     return 1
   fi
-
-  if [[ "$type" != 'bin' ]] && [[ "$type" != 'lib' ]]; then
-    h_echo -e "$H_ERROR: <type> must be either bin or lib"
-    h_echo "$usage"
-    return 1
-  fi
-  return 0
+  h_github_download 'hansung080' 'make-kit' 'main' "$@"
 }
 
 h_make_c_main() {
@@ -89,26 +78,32 @@ h_make_new() {
   (($# == 0)) && { h_error -t 'argument <project> required'; h_make_new_usage; return 1; }
   (($# > 1)) && { h_error -t "too many arguments: $(h_join_elems ' ' "$@")"; h_make_new_usage; return 1; }
 
-  # DELETE ME
-  h_info -t "h_make_new: $(h_join_elems ' ' "$@")"
-  return
+  local project="$1" makefile='bin.mk'
+  if h_make_is_bin; then
+    makefile='bin.mk'
+  elif h_make_is_lib; then
+    makefile='lib.mk'
+  fi
 
-  local project="$1"
-  local type="$2"
-  if ! h_make_check_args "$project" "$type" 'h_make_new'; then
+  if [ -e "$project" ]; then
+    h_error -t "$project already exists"
     return 1
   fi
 
+  local type
   mkdir -p "$project/src" "$project/test"
-  local makefile="$type.mk"
-  curl -fsSL "https://raw.githubusercontent.com/hansung080/study/master/c/examples/make-sample/$makefile" | sed "s/make-sample/$project/g" > "$project/$makefile"
-  curl -fsSL 'https://raw.githubusercontent.com/hansung080/study/master/c/examples/make-sample/project.mk' | sed "s/bin\.mk/$makefile/g" > "$project/Makefile"
-  h_make_c_main "$project-test" > "$project/test/main.c"
-  if [[ "$type" == 'bin' ]]; then
+  h_make_download "c-project/$makefile" | sed "s/c-project/$project/g" > "$project/$makefile"
+  h_make_download 'c-project/project.mk' | sed "s/bin\.mk/$makefile/g" > "$project/Makefile"
+  if [[ "$makefile" == 'bin.mk' ]]; then
     h_make_c_main "$project" > "$project/src/main.c"
+    type='binary'
   else
     touch "$project/src/lib.c"
+    type='library'
   fi
+  h_make_c_main "$project-test" > "$project/test/main.c"
+
+  h_info "created a $type project '$project'"
 }
 
 h_make_status_usage() {
@@ -119,8 +114,20 @@ h_make_status() {
   h_make_check_options || { h_make_status_usage; return 1; }
   (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_status_usage; return 1; }
 
-  # DELETE ME
-  h_info -t "h_make_status: $(h_join_elems ' ' "$@")"
+  local project makefiles=('bin.mk' 'lib.mk' 'project.mk') makefile hash sync style
+  project="$(basename "$(pwd -P)")"
+  for makefile in "${makefiles[@]}"; do
+    if [ -f "$makefile" ]; then
+      hash="$(h_make_download "c-project/$makefile" | sed "s/c-project/$project/g" | h_md5)"
+      sync="$(h_get_sync "$makefile" "$hash")"
+      if [[ "$sync" != 'synced' ]]; then
+        style="$H_RED"
+      else
+        style=''
+      fi
+      h_echo "$style$makefile\t$sync$H_RESET"
+    fi
+  done
 }
 
 h_make_update_usage() {
@@ -131,18 +138,27 @@ h_make_update() {
   h_make_check_options '--bin' '--lib' '--project' '--all' || { h_make_update_usage; return 1; }
   (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_update_usage; return 1; }
 
-  # DELETE ME
-  h_info -t "h_make_update: $(h_join_elems ' ' "$@")"
-  return
-
-  local project="$1"
-  local type="$2"
-  if ! h_make_check_args "$project" "$type" 'h_make_update'; then
-    return 1
+  local project makefiles=() makefile
+  project="$(basename "$(pwd -P)")"
+  if h_make_update_is_none; then
+    for makefile in 'bin.mk' 'lib.mk' 'project.mk'; do
+      [ -f "$makefile" ] && makefiles+=("$makefile")
+    done
+  else
+    if h_make_is_all; then
+      makefiles+=('bin.mk' 'lib.mk' 'project.mk')
+    else
+      h_make_is_bin && makefiles+=('bin.mk')
+      h_make_is_lib && makefiles+=('lib.mk')
+      h_make_is_project && makefiles+=('project.mk')
+    fi
   fi
 
-  local makefile="$type.mk"
-  curl -fsSL "https://raw.githubusercontent.com/hansung080/study/master/c/examples/make-sample/$makefile" | sed "s/make-sample/$project/g" > "$makefile"
+  for makefile in "${makefiles[@]}"; do
+    h_make_download "c-project/$makefile" | sed "s/c-project/$project/g" > "$makefile"
+  done
+
+  h_info "updated makefiles: $(h_join_elems ' ' "${makefiles[@]}")"
 }
 
 h_make_help() {

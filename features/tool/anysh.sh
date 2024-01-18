@@ -204,28 +204,6 @@ h_anysh_ls() {
   done < <(IFS=$'\n'; h_echo "${features[*]}" | sort)
 }
 
-h_anysh_is_synced() {
-  if [ -f "$1" ]; then
-    if [[ "$2" == "$(h_md5 "$1")" ]]; then
-      return 0
-    else
-      return 1
-    fi
-  else
-    return 2
-  fi
-}
-
-h_anysh_get_sync() {
-  h_anysh_is_synced "$1" "$2"
-  case $? in
-    0) h_echo 'synced' ;;
-    1) h_echo 'not-synced' ;;
-    2) h_echo 'not-installed' ;;
-    *) h_error -t 'failed to get sync'; return 1 ;;
-  esac
-}
-
 h_anysh_ls_remote() {
   (($# == 0)) && set -- '*'
   local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES' t_sync='SYNC'
@@ -234,7 +212,7 @@ h_anysh_ls_remote() {
   while IFS="$sep" read -r feature deps hash; do
     __h_anysh_parse_feature
     __h_anysh_set_path
-    sync="$(h_anysh_get_sync "$lpath" "$hash")"
+    sync="$(h_get_sync "$lpath" "$hash")"
     features+=("${gname:=-}$sep$fname$sep$state$sep$deps$sep$sync")
     glen="${#gname}"; ((glen > gmax)) && gmax="$glen"
     flen="${#fname}"; ((flen > fmax)) && fmax="$flen"
@@ -364,7 +342,7 @@ h_anysh_off() {
 
 __h_anysh_update_process() {
   opath=''
-  if h_anysh_is_synced "$lpath" "$hash"; then
+  if h_is_synced "$lpath" "$hash"; then
     if h_anysh_update_is_default && [[ "$(basename "$lpath")" != "$base" ]]; then
       if [[ "$(basename "$rpath")" == .* ]]; then
         out+="$osep$H_YELLOW$fname$H_RESET"

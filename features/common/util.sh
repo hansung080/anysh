@@ -299,6 +299,28 @@ h_md5() {
   fi
 }
 
+h_is_synced() {
+  if [ -f "$1" ]; then
+    if [[ "$2" == "$(h_md5 "$1")" ]]; then
+      return 0
+    else
+      return 1
+    fi
+  else
+    return 2
+  fi
+}
+
+h_get_sync() {
+  h_is_synced "$1" "$2"
+  case $? in
+    0) h_echo 'synced' ;;
+    1) h_echo 'not-synced' ;;
+    2) h_echo 'not-found' ;;
+    *) h_error -t 'failed to get sync'; return 1 ;;
+  esac
+}
+
 h_is_setopt() {
   h_is_zsh && setopt | grep "^$1$" > /dev/null
 }
