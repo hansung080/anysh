@@ -114,12 +114,18 @@ h_make_status() {
   h_make_check_options || { h_make_status_usage; return 1; }
   (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_status_usage; return 1; }
 
-  local makefiles=('bin.mk' 'lib.mk' 'project.mk') makefile fmax=0 flen
+  local makefiles=('bin.mk' 'lib.mk' 'project.mk') makefile fmax=0 flen exists=''
   for makefile in "${makefiles[@]}"; do
     if [ -f "$makefile" ]; then
+      exists='true'
       flen="${#makefile}"; ((flen > fmax)) && fmax="$flen"
     fi
   done
+
+  if [ -z "$exists" ]; then
+    h_error -t 'makefile does not exist: Run the command again at the project root directory.'
+    return 1
+  fi
 
   local project hash sync fn style
   project="$(basename "$(pwd -P)")"
@@ -162,15 +168,16 @@ h_make_update() {
     fi
   fi
 
+  if ((${#makefiles[@]} == 0)); then
+    h_error -t 'nothing updated: Run the command again at the project root directory.'
+    return 1
+  fi
+
   for makefile in "${makefiles[@]}"; do
     h_make_download "c-project/$makefile" | sed "s/c-project/$project/g" > "$makefile"
   done
 
-  if ((${#makefiles[@]} > 0)); then
-    h_info "Updated $(h_join_elems ' ' "${makefiles[@]}")"
-  else
-    h_info 'Updated nothing'
-  fi
+  h_info "Updated $(h_join_elems ' ' "${makefiles[@]}")"
 }
 
 h_make_help() {

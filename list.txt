@@ -2,7 +2,7 @@ hidden/init.sh - c122a8d4dec83ea09e8b23e2906575c0
 hidden/source.sh - 8c1b2d13002292ed0023b2aa34afb040
 hidden/callback.sh - 480197c63b47a59c2930176f2ecbc789
 alias/help.sh util 9c11c81afc66b71d8f5dd900f352b4f1
-ext/make.sh util 6500d08443ac591f160bfdb4bffff40b
+ext/make.sh util 4ad26698d2a1c0a76236d0fd73431a21
 ext/getopt.sh util ef096ea443936433a059f75292bb4889
 ext/cd.sh util 31e515239fb4eb4b839b983a8b13a0d6
 common/prompt.sh util 4646a0f325c9b1ddece8ced89f553dfb
