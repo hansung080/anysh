@@ -185,7 +185,8 @@ h_make_help() {
   h_echo '  make [<options...>] [<targets...>]'
   h_echo
   h_echo 'Options:'
-  h_echo '  --helpx  Display this help message'
+  h_echo '  --help  Display this help message'
+  h_echo "          NOTE: For original make, use 'command make --help' to display its help message."
   h_echo
   h_echo 'Usage by Targets:'
   h_echo '  make new <project>   Create a <project>, default: --bin'
@@ -199,7 +200,7 @@ h_make_help() {
   h_echo '    --all              Download bin.mk, lib.mk, and project.mk regardless of their existence'
   h_echo '  make [build]         Build the project, [build] can be omitted'
   h_echo '    -v, --verbose      Display stdout for build, default: no stdout'
-  h_echo "                       CAUTION: -v is also used by command make. Thus, 'make --version' can be used for 'command make -v'."
+  h_echo "                       NOTE: For original make, use 'command make -v' or 'make --version' to display its version."
   h_echo '    --static           Build a static library for a library project, default: dynamic library'
   h_echo '  make run             Build and run the project'
   h_echo '    --args <args>      Pass <args> to the program'
@@ -218,7 +219,7 @@ h_make_help() {
 }
 
 h_make_usage() {
-  h_error "Run 'make --helpx' for more information on the usage."
+  h_error "Run 'make --help' for more information on the usage."
 }
 
 make() {
@@ -238,7 +239,7 @@ make() {
   local args=() optarg=''
   while (($# > 0)); do
     case "$1" in
-      '--helpx')
+      '--help')
         h_make_help
         return ;;
       '--bin')

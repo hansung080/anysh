@@ -221,7 +221,7 @@ h_cd_help() {
   h_echo '  cd [<options...>] [<dir>]'
   h_echo
   h_echo 'Options:'
-  h_echo '  --helpx            Display this help message'
+  h_echo '  --help             Display this help message'
   h_echo '  ++                 Display all directories with their index of the directory stack'
   h_echo '  +++                Display all directories with their index of the directory stack, in long format instead of using ~ expression'
   h_echo '  +<index>           Change the current directory to a directory identified by <index>. e.g. +0 identifies the top directory'
@@ -235,7 +235,7 @@ h_cd_help() {
 }
 
 h_cd_usage() {
-  h_error "Run 'cd --helpx' for more information on the usage."
+  h_error "Run 'cd --help' for more information on the usage."
 }
 
 cd() {
@@ -245,7 +245,7 @@ cd() {
 
   while (($# > 0)); do
     case "$1" in
-      '--helpx')
+      '--help')
         h_cd_help
         return ;;
       '++')
