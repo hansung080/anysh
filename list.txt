@@ -8,5 +8,5 @@ ext/cd.sh util 86c970a7864d123cc6f83205b1b13686
 common/prompt.sh util 4646a0f325c9b1ddece8ced89f553dfb
 common/read.sh util 3b36ba946cb98467b1d5f144ef727033
 common/path.sh util 45bc761827dbd2cfeea91ef645ac6e46
-common/util.sh - 581dd6b5666776db63ae55e624a7910f
+common/util.sh - f1afe51aed09d58a8de973f5d8d2b692
 tool/anysh.sh util,getopt b4d66370a1e89e55c56da421f68e82db

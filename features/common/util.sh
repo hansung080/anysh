@@ -7,6 +7,8 @@ H_GREEN=$'\033[0;32m'
 H_YELLOW=$'\033[0;33m'
 H_BLUE=$'\033[0;34m'
 
+H_WIFI_DEFAULT_NETWORK='en0'
+
 h_is_util_sourced() {
   return 0
 }
@@ -20,6 +22,7 @@ h_on_unset_util() {
   unset -v H_GREEN
   unset -v H_YELLOW
   unset -v H_BLUE
+  unset -v H_WIFI_DEFAULT_NETWORK
 }
 
 h_is_verbose() {
@@ -321,6 +324,29 @@ h_get_sync() {
   esac
 }
 
+h_is_set() {
+  local state
+  state="$(set -o | grep "^$1 " | awk '{ print $2 }')"
+  if [[ "$state" == 'on' ]]; then
+    return 0
+  elif [[ "$state" == 'off' ]]; then
+    return 1
+  else
+    h_error -t "invalid set option: $1"
+    return 2
+  fi
+}
+
+h_set_if_not() {
+  ! h_is_set "$1" && set -o "$1"
+}
+
+h_unset_if_set() {
+  if [[ "$2" == '0' ]]; then
+    set +o "$1"
+  fi
+}
+
 h_is_setopt() {
   h_is_zsh && setopt | grep "^$1$" > /dev/null
 }
@@ -387,6 +413,22 @@ h_check_optarg_number() {
     return 1
   fi
   return 0
+}
+
+h_networksetup() {
+  if networksetup "$@" &> /dev/null; then
+    networksetup "$@"
+  else
+    networksetup "$@" >&2
+  fi
+}
+
+h_ssid() {
+  local network="${1:-$H_WIFI_DEFAULT_NETWORK}"
+  (
+    set -o 'pipefail'
+    h_networksetup -getairportnetwork "$network" | awk '{ print $NF }'
+  )
 }
 
 h_test_style() {
