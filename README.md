@@ -1,37 +1,66 @@
 # Anysh
-Anysh is a versatile CLI utility composed of various shell functions. These functions consist of independent functions
-and extended functions which extended from existing commands. A group of functions is called a feature, and a group of
-features is called a group. Using Anysh, you can see the list of features, turn on/off features, and update features.
-For instance, the cd function is extended from the cd command and additionally has the history tracking ability. If you
-turn on cd, you will use the cd with history tracking ability, and if you turn off cd, you will use the original cd.
+
+Anysh is a versatile CLI utility built from modular shell functions.
+
+Each function is either:
+- a standalone utility, or
+- an extension of an existing shell command.
+
+A collection of functions is called a **feature**, and a collection of features is called a **group**.
+
+With Anysh, you can list available features, enable or disable them, and update them as needed.
+It lets you selectively enable extended shell features without permanently overriding existing shell commands.
+
+For example, the `cd` feature extends the original `cd` command by adding directory history tracking.
+When the `cd` feature is enabled, the extended version is used.
+When it is disabled, the original `cd` command behaves as usual.
 
 ## Supported Shells
-Anysh supports only the following shells at the moment. If you are using another shell, some features of Anysh will not
-work.
+
+Anysh currently supports the following shells:
 - Bash
 - Zsh
 
-## Install Anysh
+Other shells are not fully supported, and some features may not work as expected.
+
+## Installation
+
 To install Anysh to `$HOME/.anysh`, run:
+
 ```sh
-curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' | bash -s -- -f
+curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' \
+  | bash -s -- -f
 ``` 
 
-Or, to install Anysh to the `<anysh dir>` you specified, run:
+To install Anysh to a custom directory (`<anysh-dir>`), run:
+
 ```sh
-curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' | bash -s -- -fp <anysh dir>
+curl -fsSL 'https://raw.githubusercontent.com/hansung080/anysh/main/install/install.sh' \
+  | bash -s -- -fp <anysh-dir>
 ```
 
-After installation, to use Anysh, append the following code to your shell configuration file such as .bashrc, .bash_profile, .zshrc,
-etc. and source it. If you specified the `<anysh dir>` when installation, you must modify it as `export H_ANYSH_DIR="<anysh dir>"`
-in the following code:
+After installation, append the following code to your shell profile file
+(`~/.bashrc`, `~/.bash_profile`, `~/.zshrc`, or `~/.profile`) and source it:
+
 ```sh
+# This overrides the default hostname in the prompt if set (optional). 
+H_PROMPT_HOSTNAME=<hostname>
+
+# This is required for Anysh to work. 
 export H_ANYSH_DIR="$HOME/.anysh"
 [ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh" --now
 ```
 
-## How to use Anysh
-To see how to use Anysh, run:
+If you installed Anysh to a custom directory, set `H_ANYSH_DIR` accordingly:
+
+```sh
+export H_ANYSH_DIR=<anysh-dir>
+```
+
+## Usage
+
+For usage information, run:
+
 ```sh
 anysh --help
 ```

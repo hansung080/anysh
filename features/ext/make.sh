@@ -26,7 +26,7 @@ h_make_update_is_none() {
   [[ -z "$H_MAKE_BIN" && -z "$H_MAKE_LIB" && -z "$H_MAKE_PROJECT" && -z "$H_MAKE_ALL" ]]
 }
 
-h_make_check_options() {
+h_make_check_opts() {
   local opts=()
   [ -n "$H_MAKE_BIN" ] && opts+=('--bin')
   [ -n "$H_MAKE_LIB" ] && opts+=('--lib')
@@ -74,7 +74,7 @@ h_make_new_usage() {
 }
 
 h_make_new() {
-  h_make_check_options '--bin' '--lib' || { h_make_new_usage; return 1; }
+  h_make_check_opts '--bin' '--lib' || { h_make_new_usage; return 1; }
   (($# == 0)) && { h_error -t 'argument <project> required'; h_make_new_usage; return 1; }
   (($# > 1)) && { h_error -t "too many arguments: $(h_join_elems ' ' "$@")"; h_make_new_usage; return 1; }
 
@@ -111,7 +111,7 @@ h_make_status_usage() {
 }
 
 h_make_status() {
-  h_make_check_options || { h_make_status_usage; return 1; }
+  h_make_check_opts || { h_make_status_usage; return 1; }
   (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_status_usage; return 1; }
 
   local makefiles=('bin.mk' 'lib.mk' 'project.mk') makefile fmax=0 flen exists=''
@@ -149,7 +149,7 @@ h_make_update_usage() {
 }
 
 h_make_update() {
-  h_make_check_options '--bin' '--lib' '--project' '--all' || { h_make_update_usage; return 1; }
+  h_make_check_opts '--bin' '--lib' '--project' '--all' || { h_make_update_usage; return 1; }
   (($# != 0)) && { h_error -t "no arguments required: $(h_join_elems ' ' "$@")"; h_make_update_usage; return 1; }
 
   local project makefiles=() makefile
@@ -182,44 +182,45 @@ h_make_update() {
 
 h_make_help() {
   h_echo 'Usage:'
-  h_echo '  make [<options...>] [<targets...>]'
+  h_echo '  make [<options>...] [<targets>...]'
   h_echo
   h_echo 'Options:'
-  h_echo '  --help  Display this help message'
-  h_echo "          NOTE: For original make, use 'command make --help' to display its help message."
+  h_echo '  --help  Show help'
+  h_echo "          NOTE: Run 'command make --help' for original make to show help."
   h_echo
-  h_echo 'Usage by Targets:'
-  h_echo '  make new <project>   Create a <project>, default: --bin'
-  h_echo '    --bin              Create a binary project'
-  h_echo '    --lib              Create a library project'
-  h_echo '  make status          Check if local makefiles are up-to-date'
-  h_echo '  make update          Download bin.mk, lib.mk, or project.mk if they exist in the local directory'
-  h_echo '    --bin              Download bin.mk regardless of its existence'
-  h_echo '    --lib              Download lib.mk regardless of its existence'
-  h_echo '    --project          Download project.mk regardless of its existence'
-  h_echo '    --all              Download bin.mk, lib.mk, and project.mk regardless of their existence'
-  h_echo '  make [build]         Build the project, [build] can be omitted'
-  h_echo '    -v, --verbose      Display stdout for build, default: no stdout'
-  h_echo "                       NOTE: For original make, use 'command make -v' or 'make --version' to display its version."
-  h_echo '    --static           Build a static library for a library project, default: dynamic library'
-  h_echo '  make run             Build and run the project'
-  h_echo '    --args <args>      Pass <args> to the program'
-  h_echo '  make test            Build and test the project'
-  h_echo '    --args <args>      Pass <args> to the test-program'
-  h_echo '  make clean           Clean the project'
-  h_echo '  make rename-project  Rename the project in test code'
-  h_echo '    --old-project <name>  Specify the old project name'
-  h_echo '    --new-project <name>  Specify the new project name'
-  h_echo '  make version         Display the version of the makefile'
-  h_echo '  make var             Display variables defined in the makefile (for debugging)'
-  h_echo '  make env             Display environment variables used in the makefile (for debugging)'
-  h_echo '  make all             Build all projects including dependent projects'
-  h_echo '  make clean-all       Clean all projects including dependent projects'
-  h_echo '  make ext             Display extended variables defined in project.mk (for debugging)'
+  h_echo 'Targets:'
+  h_echo '  new <project>    Create a <project> (default: --bin)'
+  h_echo '    --bin          Create a binary <project>'
+  h_echo '    --lib          Create a library <project>'
+  h_echo '  status           Show status of local makefiles'
+  h_echo "  update           Download and replace makefiles ('bin.mk', 'lib.mk', or 'project.mk') that already exist in the current directory"
+  h_echo "    --bin          Download and replace 'bin.mk' (regardless of existence)"
+  h_echo "    --lib          Download and replace 'lib.mk' (regardless of existence)"
+  h_echo "    --project      Download and replace 'project.mk' (regardless of existence)"
+  h_echo "    --all          Download and replace all makefiles (regardless of existence)"
+  h_echo '  [build]          Build the project'
+  h_echo '    -v, --verbose  Print build commands as they are executed'
+  h_echo "                   NOTE: Run 'command make -v' or 'make --version' for original make to show version."
+  h_echo '    --static       Build a static library for the library project (default: dynamic library)'
+  h_echo '  run              Build and run the project'
+  h_echo '    --args <args>  Pass <args> to the program'
+  h_echo '  test             Build and test the project'
+  h_echo '    --args <args>  Pass <args> to the test program'
+  h_echo '  clean            Clean the project'
+  h_echo '  rename-project   Rename the project'
+  h_echo '    --old-project <name>  Specify <name> for the old project'
+  h_echo '    --new-project <name>  Specify <name> for the new project'
+  h_echo '  version          Show version of the makefile'
+  h_echo '  var              Print variables defined in the makefile'
+  h_echo '  env              Print environment variables used in the makefile'
+  h_echo '  all              Build the project and its dependencies'
+  h_echo '  clean-all        Clean the project and its dependencies'
+  h_echo "  ext              Print extended variables defined in 'project.mk'"
 }
 
 h_make_usage() {
-  h_error "Run 'make --help' for more information on the usage."
+  h_error 'usage: make [<options>...] [<targets>...]'
+  h_error "Run 'make --help' for more information."
 }
 
 make() {

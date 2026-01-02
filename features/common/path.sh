@@ -58,7 +58,7 @@ h_path() {
 
 h_readlink() {
   [ -e "$1" ] || return 1
-  local file="$1" link _path
+  local file="$1" link path_
   while [ -h "$file" ]; do
     link="$(expr "X$(ls -ld "$file")" : 'X.* -> \(.*\)$')"
     if [ -z "$link" ]; then
@@ -69,7 +69,7 @@ h_readlink() {
       file="$(dirname "$file")/$link"
     fi
   done
-  _path="$(cd "$(dirname "$file")" && pwd -P)" && \
-  _path+="/$(basename "$file")" && \
-  echo "$_path"
+  path_="$(cd "$(dirname "$file")" && pwd -P)" && \
+  path_+="/$(basename "$file")" && \
+  echo "$path_"
 }

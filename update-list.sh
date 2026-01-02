@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export H_ANYSH_DIR="$(dirname "$(readlink -f "$0")")"
 source "$H_ANYSH_DIR/hidden/source.sh"

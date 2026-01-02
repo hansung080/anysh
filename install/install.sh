@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 S_RESET=$'\033[0m'
 S_RED_BOLD=$'\033[1;31m'
@@ -67,7 +67,7 @@ is_login_shell_by_pid() {
   ps -p "$1" | grep -E -- ' -[^ ]*l[^ ]* | -[^ ]*l[^ ]*$| --login | --login$' > /dev/null
 }
 
-shell_config() {
+shell_profile() {
   case "$(parent_shell)" in
     'bash')
       if is_login_shell_by_pid "$PPID"; then
@@ -90,9 +90,9 @@ replace_home_to_var() {
 }
 
 anysh_download() {
-  local _path="$1"
+  local path_="$1"
   shift
-  curl -fsSL "https://raw.githubusercontent.com/hansung080/anysh/main/$_path" "$@"
+  curl -fsSL "https://raw.githubusercontent.com/hansung080/anysh/main/$path_" "$@"
 }
 
 check_optarg_notdash_notnull() {
@@ -105,7 +105,7 @@ check_optarg_notdash_notnull() {
 }
 
 usage() {
-  error 'usage: install.sh [-fp <anysh dir>]'
+  error 'usage: install.sh [-fp <anysh-dir>]'
 }
 
 main() {
@@ -139,8 +139,8 @@ main() {
     rm -rf "$ANYSH_DIR"
   else
     if [ -e "$ANYSH_DIR" ]; then
-      echo "=> The Anysh directory already exists: $(readlink -f "$ANYSH_DIR")"
-      confirm '   Delete it and continue to install Anysh (yes/no) ? ' 'yes' || return 0
+      echo "=> Anysh directory already exists: $(readlink -f "$ANYSH_DIR")"
+      confirm '   Delete it and continue to install Anysh (yes/no)? ' 'yes' || return 0
       rm -rf "$ANYSH_DIR"
       echo
     fi
@@ -164,19 +164,19 @@ main() {
   echo 'done'
 
   echo
-  echo "=> To use Anysh, append the following code to \$HOME/$(shell_config) and source it: "
+  echo "=> To use Anysh, append the following code to \$HOME/$(shell_profile) and source it: "
   blue "export H_ANYSH_DIR=\"$(replace_home_to_var "$PHYSICAL_ANYSH_DIR")\""
   blue '[ -s "$H_ANYSH_DIR/hidden/init.sh" ] && source "$H_ANYSH_DIR/hidden/init.sh" --now'
 
   local newline=''
   if ! is_shell_supported "$(default_shell)"; then
     [ -z "$newline" ] && { echo; newline='true'; }
-    warn -t "Your default shell '$(default_shell)' is not supported by Anysh. Only bash and zsh are supported."
+    warn -t "Your default shell '$(default_shell)' is not supported for Anysh. Only Bash and Zsh are supported."
   fi
 
   if ! is_shell_supported "$(parent_shell)"; then
     [ -z "$newline" ] && { echo; newline='true'; }
-    warn -t "Your current shell '$(parent_shell)' is not supported by Anysh. Only bash and zsh are supported."
+    warn -t "Your current shell '$(parent_shell)' is not supported for Anysh. Only Bash and Zsh are supported."
   fi
 }
 

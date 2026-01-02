@@ -6,7 +6,7 @@ h_is_getopt_sourced() {
   return 0
 }
 
-h_get_lopts() {
+h_get_long_opts() {
   local _opts _name="$2"
   IFS=',' read -ra _opts <<< "$1"
   shift 2
@@ -62,49 +62,50 @@ h_get_lopts() {
   fi
 }
 
-h_get_options_help() {
+h_get_opts_help() {
   h_echo 'Usage:'
-  h_echo '  h_get_options [<options...>] [--] [<arguments...>]'
+  h_echo '  h_get_opts [<options>...] [--] [<arguments>...]'
   h_echo
   h_echo 'Options:'
-  h_echo '  -o <optstring>  Specify the short options to be recognized'
-  h_echo '  -l <optstring>  Specify the long options to be recognized'
-  h_echo '  -h              Display this help message'
-  h_echo '  -V              Display the version of h_get_options'
+  h_echo '  -o <opt-string>  Specify <opt-string> for short options to be recognized'
+  h_echo '  -l <opt-string>  Specify <opt-string> for long options to be recognized'
+  h_echo '  -h               Show help'
+  h_echo '  -V               Show version'
 }
 
-h_get_options_usage() {
-  h_error "Run 'h_get_options -h' for more information on the usage."
+h_get_opts_usage() {
+  h_error 'usage: h_get_opts [<options>...] [--] [<arguments>...]'
+  h_error "Run 'h_get_opts -h' for more information."
 }
 
-h_get_options() {
+h_get_opts() {
   local opt='' OPTIND=1 OPTARG='' sopts='' lopts=''
   while getopts ':o:l:hV' opt; do
     case "$opt" in
       'o')
-        h_check_optarg_notdash "-$opt" "$OPTARG" h_get_options_usage || return 2
+        h_check_optarg_notdash "-$opt" "$OPTARG" h_get_opts_usage || return 2
         sopts="$OPTARG"
         ;;
       'l')
-        h_check_optarg_notdash "-$opt" "$OPTARG" h_get_options_usage || return 2
+        h_check_optarg_notdash "-$opt" "$OPTARG" h_get_opts_usage || return 2
         lopts="$OPTARG"
         ;;
       'h')
-        h_get_options_help
+        h_get_opts_help
         return 0
         ;;
       'V')
-        h_echo 'h_get_options v1.0.0 for bash'
+        h_echo 'h_get_opts v1.0.0 for bash'
         return 0
         ;;
       '?')
-        h_error "h_get_options: illegal option -$OPTARG"
-        h_get_options_usage
+        h_error "h_get_opts: illegal option -$OPTARG"
+        h_get_opts_usage
         return 2
         ;;
       ':')
-        h_error "h_get_options: option -$OPTARG requires an argument"
-        h_get_options_usage
+        h_error "h_get_opts: option -$OPTARG requires an argument"
+        h_get_opts_usage
         return 2
         ;;
     esac
@@ -122,7 +123,7 @@ h_get_options() {
         break
         ;;
       --*)
-        h_get_lopts "$lopts" opt "$@" || { h_error "h_get_options: h_get_lopts error: $?"; h_echo "$err"; return 1; }
+        h_get_long_opts "$lopts" opt "$@" || { h_error "h_get_opts: h_get_long_opts error: $?"; h_echo "$err"; return 1; }
         if [[ "$opt" == '?' || "$opt" == ':' ]]; then
           OPTARG="--$OPTARG"
         else
@@ -130,7 +131,7 @@ h_get_options() {
         fi
         ;;
       -*)
-        getopts ":$sopts" opt || { h_error "h_get_options: getopts error: $?"; h_echo "$err"; return 1; }
+        getopts ":$sopts" opt || { h_error "h_get_opts: getopts error: $?"; h_echo "$err"; return 1; }
         if [[ "$opt" == '?' || "$opt" == ':' ]]; then
           OPTARG="-$OPTARG"
         else
@@ -146,11 +147,11 @@ h_get_options() {
 
     case "$opt" in
       '?')
-        h_error "h_get_options: illegal option $OPTARG"
+        h_error "h_get_opts: illegal option $OPTARG"
         ret=1
         ;;
       ':')
-        h_error "h_get_options: option $OPTARG requires an argument"
+        h_error "h_get_opts: option $OPTARG requires an argument"
         ret=1
         ;;
       *)
@@ -170,13 +171,13 @@ h_get_options() {
 
 h_is_gnu_getopt() {
   command getopt -T > /dev/null
-  [ $? -eq 4 ]
+  (($? == 4))
 }
 
 h_check_gnu_getopt() {
   if ! h_is_gnu_getopt; then
     h_error -t 'GNU getopt not installed on your system'
-    h_is_mac && h_error 'To install gnu-getopt on macOS, run: brew install gnu-getopt'
+    h_is_mac && h_error 'To install GNU getopt on macOS, run: brew install gnu-getopt'
     return 1
   fi
   return 0
@@ -184,7 +185,7 @@ h_check_gnu_getopt() {
 
 getopt() {
   if h_is_bash; then
-    h_get_options "$@"
+    h_get_opts "$@"
   else
     h_check_gnu_getopt || return 1
     command getopt "$@"

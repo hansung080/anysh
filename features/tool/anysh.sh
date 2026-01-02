@@ -24,12 +24,13 @@ h_anysh_update_is_reset() {
   [ -n "$H_ANYSH_UPDATE_RESET" ]
 }
 
-h_anysh_src_is_force() {
-  [ -n "$H_ANYSH_SRC_FORCE" ]
+h_anysh_source_is_force() {
+  [ -n "$H_ANYSH_SOURCE_FORCE" ]
 }
 
 h_anysh_get_hidden() {
   (($# == 0)) && return 0
+
   local target opts=()
   for target in "$@"; do
     opts+=('-o' '-name' "$target.sh" '-o' '-name' ".$target.sh")
@@ -40,6 +41,7 @@ h_anysh_get_hidden() {
 
 h_anysh_get_groups() {
   (($# == 0)) && return 0
+
   local target opts=()
   for target in "$@"; do
     opts+=('-o' '-name' "$target")
@@ -50,6 +52,7 @@ h_anysh_get_groups() {
 
 h_anysh_get_features() {
   (($# == 0)) && return 0
+
   local target group_args=() feature_opts=() groups=()
   for target in "$@"; do
     case "$target" in
@@ -144,6 +147,7 @@ h_anysh_download() {
 
 h_anysh_get_all_features_remote() {
   (($# == 0)) && return 0
+
   h_setopt_if_not 'globsubst'; local globsubst_ret="$?"
   local feature dir base gname fname state deps hash sep=' ' target
   while IFS="$sep" read -r feature deps hash; do
@@ -171,6 +175,7 @@ h_anysh_get_deps() {
 
 h_anysh_ls() {
   (($# == 0)) && set -- '*'
+
   local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES'
   local feature dir base gname fname state deps sep=' '
   local features=() gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}"
@@ -206,6 +211,7 @@ h_anysh_ls() {
 
 h_anysh_ls_remote() {
   (($# == 0)) && set -- '*'
+
   local t_gname='GROUP' t_fname='FEATURE' t_state='STATE' t_deps='DEPENDENCIES' t_sync='SYNC'
   local feature dir base gname fname state rpath lpath deps hash sync sep=' '
   local features=() gmax="${#t_gname}" glen fmax="${#t_fname}" flen smax="${#t_state}" dmax="${#t_deps}" dlen
@@ -284,6 +290,7 @@ __h_anysh_on_process() {
 
 h_anysh_on() {
   h_anysh_check_args_nonzero "$@" || return 1
+
   local feature dir base gname fname state
   local tdeps=() targets=() out='' osep=' '
   local H_ON_SOURCE=()
@@ -307,11 +314,12 @@ h_anysh_on() {
 
 h_anysh_unset_funcs() {
   h_call_on_unset "$@"
-  local _path func
-  for _path in "$@"; do
+
+  local path_ func
+  for path_ in "$@"; do
     while IFS= read -r func; do
       unset -f "$func"
-    done < <(grep -E '^ *[A-Za-z0-9_-]+ *\(\)' "$_path" | sed 's/().*//' | tr -d ' ')
+    done < <(grep -E '^ *[A-Za-z0-9_-]+ *\(\)' "$path_" | sed 's/().*//' | tr -d ' ')
   done
 }
 
@@ -329,6 +337,7 @@ __h_anysh_off_process() {
 
 h_anysh_off() {
   h_anysh_check_args_nonzero "$@" || return 1
+
   local feature dir base gname fname state
   local out='' osep=' ' unsets=()
   while IFS= read -r feature; do
@@ -381,6 +390,7 @@ __h_anysh_update_process() {
 h_anysh_update() {
   (($# == 0)) && set -- '*'
   h_anysh_update_is_reset && rm -rf "$H_ANYSH_DIR"
+
   local feature dir base gname fname state rpath lpath deps hash sep=' '
   local tdeps=() targets=() out='' osep=' ' opath unsets=()
   local H_ON_SOURCE=()
@@ -405,13 +415,13 @@ h_anysh_update() {
   h_anysh_unset_funcs "${unsets[@]}"
 }
 
-__h_anysh_src_process() {
+__h_anysh_source_process() {
   if [[ "$state" == 'on' ]]; then
     out+="$osep$fname"
     source "$H_FEATURES_DIR/$feature" && h_register_on_source "$fname"
   else
     out+="$osep$H_YELLOW$fname$H_RESET"
-    if h_anysh_src_is_force; then
+    if h_anysh_source_is_force; then
       source "$H_FEATURES_DIR/$feature" && h_register_on_source "$fname"
     else
       h_warn -t "$fname is off"
@@ -420,15 +430,16 @@ __h_anysh_src_process() {
   osep=' '
 }
 
-h_anysh_src() {
+h_anysh_source() {
   h_anysh_check_args_nonzero "$@" || return 1
+
   local feature dir base gname fname state
   local tdeps=() targets=() out='' osep=' '
   local H_ON_SOURCE=()
   while IFS= read -r feature; do
     __h_anysh_parse_feature
     __h_anysh_add_deps "$1" ' ' "$(h_anysh_get_deps "$H_FEATURES_DIR/$feature")"
-    __h_anysh_src_process
+    __h_anysh_source_process
   done < <(h_anysh_get_features "$@")
 
   h_dedup_array tdeps
@@ -436,7 +447,7 @@ h_anysh_src() {
   osep=$'\n'
   while IFS= read -r feature; do
     __h_anysh_parse_feature
-    __h_anysh_src_process
+    __h_anysh_source_process
   done < <(h_anysh_get_features "${tdeps[@]}")
 
   h_call_on_source
@@ -466,46 +477,55 @@ h_anysh_check_all_features_nodup() {
 
 h_anysh_help() {
   h_echo 'Usage:'
-  h_echo '  anysh [<options...>] <command> [<features...>]'
-  h_echo '    * Use :<groups...> instead of <features...> to specify groups.'
-  h_echo '    * Glob characters (* ? [ ]) can be used in <features...> or :<groups...> for pattern matching.'
+  h_echo '  anysh [<options>...] <command> [<features>...]'
   h_echo
   h_echo 'Options:'
-  h_echo '  -h, --help     Display this help message'
-  h_echo '  -V, --version  Display the version of anysh'
-  h_echo '  -v, --verbose  Display debug logs. Not used at the moment.'
+  h_echo '  -h, --help     Show help'
+  h_echo '  -V, --version  Show version'
+  h_echo '  -v, --verbose  Print debug logs (currently unused)'
   h_echo
-  h_echo 'Usage by Command:'
-  h_echo '  anysh ls [<features...>]         List installed <features...>, or all features if no arguments'
-  h_echo '  anysh ls-remote [<features...>]  List remote <features...> available for update, or all features if no arguments'
-  h_echo '  anysh on <features...>           Turn on <features...> and their dependencies'
-  h_echo '  anysh off <features...>          Turn off <features...>'
-  h_echo '  anysh update [<features...>]     Update <features...> and their dependencies into the latest, or all features if no arguments'
-  h_echo '    --default                      Update with the default state'
-  h_echo '    --reset                        Remove and reinstall anysh'
-  h_echo '  anysh src <features...>          Source <features...> and their dependencies, not-in-order and in-duplicate'
-  h_echo '    -f, --force                    Allow to source off-feature'
+  h_echo 'Commands:'
+  h_echo '  ls [<features>...]         List installed <features>'
+  h_echo '  ls-remote [<features>...]  List remote <features> available for update'
+  h_echo '  on <features>...           Enable <features> and their dependencies'
+  h_echo '  off <features>...          Disable <features>'
+  h_echo '  update [<features>...]     Update <features> and their dependencies to their latest versions'
+  h_echo '    --default                Revert to the default on/off state if specified, or preserve the current on/off state if not specified'
+  h_echo '    --reset                  Remove and reinstall anysh'
+  h_echo '  source <features>...       Execute <features> and their dependencies in the current shell environment (unordered and duplicate executions)'
+  h_echo '    -f, --force              Allow to execute off-features'
+  h_echo
+  h_echo 'Notes:'
+  h_echo '  - Use :<groups> instead of <features> to specify groups.'
+  h_echo '  - Glob characters (* ? [ ]) can be used in <features> or :<groups> for pattern matching.'
+  h_echo '  - If no <features> are specified, all features are targeted.'
 }
 
 h_anysh_usage() {
-  h_error "Run 'anysh -h' for more information on the usage."
+  h_error 'usage: anysh [<options>...] <command> [<features>...]'
+  h_error "Run 'anysh --help' for more information."
 }
 
 anysh() {
+  if (($# == 0)); then
+    h_anysh_help
+    return
+  fi
+
   local H_VERBOSE=
   local H_SOURCE_ENABLE=
   local H_SOURCE_FORCE=
   local H_ANYSH_UPDATE_DEFAULT=
   local H_ANYSH_UPDATE_RESET=
-  local H_ANYSH_SRC_FORCE=
+  local H_ANYSH_SOURCE_FORCE=
 
-  local options
-  if ! options="$(getopt -o 'hVvf' -l 'help,version,verbose,default,reset,force' -- "$@")"; then
+  local opts
+  if ! opts="$(getopt -o 'hVvf' -l 'help,version,verbose,default,reset,force' -- "$@")"; then
     h_anysh_usage
     return 1
   fi
 
-  eval set -- "$options"
+  eval set -- "$opts"
 
   while true; do
     case "$1" in
@@ -525,7 +545,7 @@ anysh() {
         H_ANYSH_UPDATE_RESET='true'
         shift ;;
       '-f'|'--force')
-        H_ANYSH_SRC_FORCE='true'
+        H_ANYSH_SOURCE_FORCE='true'
         shift ;;
       '--')
         shift
@@ -550,7 +570,7 @@ anysh() {
     'on')        h_anysh_on "$@" ;;
     'off')       h_anysh_off "$@" ;;
     'update')    h_anysh_update "$@" ;;
-    'src')       h_anysh_src "$@" ;;
+    'source')    h_anysh_source "$@" ;;
     *)
       h_error -t "invalid command: $cmd"
       h_anysh_usage

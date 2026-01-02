@@ -25,6 +25,17 @@ h_on_unset_util() {
   unset -v H_WIFI_DEFAULT_NETWORK
 }
 
+h_style() {
+  h_echo "H_RESET"
+  h_echo "${H_BLACK}H_BLACK${H_RESET}"
+  h_echo "${H_BLACK_BOLD}H_BLACK_BOLD${H_RESET}"
+  h_echo "${H_RED}H_RED${H_RESET}"
+  h_echo "${H_RED_BOLD}H_RED_BOLD${H_RESET}"
+  h_echo "${H_GREEN}H_GREEN${H_RESET}"
+  h_echo "${H_YELLOW}H_YELLOW${H_RESET}"
+  h_echo "${H_BLUE}H_BLUE${H_RESET}"
+}
+
 h_is_verbose() {
   [ -n "$H_VERBOSE" ]
 }
@@ -45,12 +56,17 @@ h_is_mac() {
   [[ "$(uname -s)" == 'Darwin' ]]
 }
 
+is_root() {
+  (("$EUID" == 0))
+}
+
 h_is_func_declared() {
-  #declare -F "$1" > /dev/null # This works only in Bash.
+  # declare -F "$1" > /dev/null # This works only in Bash.
   declare -f "$1" > /dev/null # This works in both Bash and Zsh.
+
   # In Bash and Zsh, typeset is exactly the same as declare, but considered obsolete.
-  #typeset -F "$1" > /dev/null # This works only in Bash.
-  #typeset -f "$1" > /dev/null # This works in both Bash and Zsh.
+  # typeset -F "$1" > /dev/null # This works only in Bash.
+  # typeset -f "$1" > /dev/null # This works in both Bash and Zsh.
 }
 
 h_is_sourced() {
@@ -140,7 +156,7 @@ h_is_login_shell_by_pid() {
 
 # If null fields don't exist, h_split, h_split_trim_ws, h_split_trim, and h_split_raw will have the same behavior.
 # Otherwise, In Bash h_split and h_split_trim_ws, In Zsh h_split and h_split_raw will have the same behavior.
-# NOTE: Thus, if separator is whitespace and null fields exist, h_split will behave in a different way in Bash and Zsh, so h_split must not be used.
+# Thus, if separator is whitespace and null fields exist, h_split will behave in a different way in Bash and Zsh, so h_split must not be used.
 h_split() {
   if [ -z "$2" ]; then
     eval "$3"='()'
@@ -374,9 +390,9 @@ h_github_download() {
     h_error 'usage: h_github_download <user> <repo> <branch> <path> [<options...>]'
     return 1
   fi
-  local user="$1" repo="$2" branch="$3" _path="$4"
+  local user="$1" repo="$2" branch="$3" path_="$4"
   shift 4
-  curl -fsSL "https://raw.githubusercontent.com/$user/$repo/$branch/$_path" "$@"
+  curl -fsSL "https://raw.githubusercontent.com/$user/$repo/$branch/$path_" "$@"
 }
 
 h_check_optarg_notdash() {
@@ -431,13 +447,6 @@ h_ssid() {
   )
 }
 
-h_test_style() {
-  h_echo "normal"
-  h_echo "${H_BLACK}black${H_RESET}"
-  h_echo "${H_BLACK_BOLD}black bold${H_RESET}"
-  h_echo "${H_RED}red${H_RESET}"
-  h_echo "${H_RED_BOLD}red bold${H_RESET}"
-  h_echo "${H_GREEN}green${H_RESET}"
-  h_echo "${H_YELLOW}yellow${H_RESET}"
-  h_echo "${H_BLUE}blue${H_RESET}"
+h_is_gnu_grep() {
+  grep -P '.' <(echo 'x') &> /dev/null
 }

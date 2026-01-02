@@ -55,7 +55,7 @@ h_dirs_usage() {
   h_error 'usage: h_dirs [-clpv] [+N] [-N]'
 }
 
-__h_dirs_zsh_process_options() {
+__h_dirs_zsh_process_opts() {
   for opt in "$@"; do
     case "$opt" in
       '-c') opt_c='true' ;;
@@ -83,7 +83,7 @@ __h_dirs_zsh_process_options() {
 
 h_dirs_zsh() {
   local opt opt_c='' opt_l='' opt_p='' opt_v='' opt_n=''
-  __h_dirs_zsh_process_options "$@" || return 1
+  __h_dirs_zsh_process_opts "$@" || return 1
 
   if [ -n "$opt_c" ]; then
     dirs -c
@@ -115,7 +115,7 @@ h_dirs_zsh() {
 #       if the pattern '\nN\t.' exists in a directory path.
 h_dirs_zsh2() {
   local opt opt_c='' opt_l='' opt_p='' opt_v='' opt_n=''
-  __h_dirs_zsh_process_options "$@" || return 1
+  __h_dirs_zsh_process_opts "$@" || return 1
 
   if [ -n "$opt_c" ]; then
     dirs -c
@@ -218,24 +218,25 @@ h_cd_dedup() {
 
 h_cd_help() {
   h_echo 'Usage:'
-  h_echo '  cd [<options...>] [<dir>]'
+  h_echo '  cd [<options>...] [<dir>]'
   h_echo
   h_echo 'Options:'
-  h_echo '  --help             Display this help message'
-  h_echo '  ++                 Display all directories with their index of the directory stack'
-  h_echo '  +++                Display all directories with their index of the directory stack, in long format instead of using ~ expression'
-  h_echo '  +<index>           Change the current directory to a directory identified by <index>. e.g. +0 identifies the top directory'
-  h_echo '  -<inverted index>  Change the current directory to a directory identified by <inverted index>. e.g. -0 identifies the bottom directory'
-  h_echo '  -                  Change the current directory to the previous directory'
-  h_echo '  --config           Display the current configuration'
-  h_echo "  --size <size>      Resize the directory stack to <size>, default: $H_CD_DEFAULT_SIZE"
-  h_echo '  --dup              Enable duplication in the directory stack, default: no-dup'
-  h_echo '  --no-dup           Disable duplication in the directory stack'
-  h_echo '  --clear            Clear the directory stack'
+  h_echo '  --help          Show help'
+  h_echo '  ++              Show directory history (tilde-prefixed path)'
+  h_echo '  +++             Show directory history (absolute path)'
+  h_echo '  +<index>        Change to the directory at <index> (e.g. +0: current, +1: previous)'
+  h_echo '  -<index>        Change to the directory at <index> counting from the oldest (e.g. -0: oldest)'
+  h_echo '  -               Change to the previous directory'
+  h_echo '  --config        Show configuration'
+  h_echo "  --size <size>   Resize the directory stack to <size> (default: $H_CD_DEFAULT_SIZE)"
+  h_echo '  --allow-dup     Allow duplicate directories in the history'
+  h_echo '  --disallow-dup  Disallow duplicate directories in the history (default)'
+  h_echo '  --clear         Clear directory history'
 }
 
 h_cd_usage() {
-  h_error "Run 'cd --help' for more information on the usage."
+  h_error 'usage: cd [<options>...] [<dir>]'
+  h_error "Run 'cd --help' for more information."
 }
 
 cd() {
@@ -274,10 +275,10 @@ cd() {
         H_CD_SIZE="$optarg"
         h_popd_from "$optarg" "$sign"
         return ;;
-      '--dup')
+      '--allow-dup')
         H_CD_DUP='true'
         return ;;
-      '--no-dup')
+      '--disallow-dup')
         H_CD_DUP=
         h_cd_dedup "$sign"
         return ;;

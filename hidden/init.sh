@@ -1,5 +1,5 @@
 : "${H_ANYSH_DIR:=$HOME/.anysh}"
-source "$H_ANYSH_DIR/hidden/callback.sh"
+source "$H_ANYSH_DIR/hidden/hook.sh"
 
 h_init() {
   local H_VERBOSE= H_SOURCE_ENABLE= H_SOURCE_FORCE=

@@ -1,5 +1,5 @@
 : "${H_ANYSH_DIR:=$HOME/.anysh}"
-source "$H_ANYSH_DIR/hidden/callback.sh"
+source "$H_ANYSH_DIR/hidden/hook.sh"
 
 __H_FEATURES_DIR="$H_ANYSH_DIR/features"
 __H_RESET=$'\033[0m'
@@ -19,7 +19,7 @@ h_source_is_force() {
   [ -n "$H_SOURCE_FORCE" ]
 }
 
-# Source features and their dependencies, in-dependencies-first and not-in-duplicate as default.
+# Execute features and their dependencies in the current shell environment (dependencies first and non-duplicate executions).
 h_source() {
   h_source_is_enable || return 0
 
@@ -65,7 +65,7 @@ h_source() {
   return "$ret"
 }
 
-# Allow to source in-duplicate and off-feature.
+# Allow to execute off-features (dependencies first and duplicate executions).
 h_source_force() {
   local H_SOURCE_ENABLE='true'
   local H_SOURCE_FORCE='true'
