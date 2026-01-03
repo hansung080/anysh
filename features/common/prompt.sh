@@ -68,7 +68,7 @@ h_set_prompt_bash() {
   local reset="\[${H_RESET}\]"
   local yellow="\[${H_YELLOW}\]"
 
-  # Escape characters (\$, \\) are used to prevent interpretation in a double-quoted string.
+  # Escape sequences (`\$`, `\\`) are used to prevent special interpretation within double-quoted strings.
   case "$1" in
     'stp'|'short-tilde-plain')
       PS1="${H_PROMPT_HOSTNAME:-\h}:\w\\$ "
@@ -107,7 +107,9 @@ h_set_prompt_bash() {
 }
 
 h_set_prompt_zsh() {
-  # Escape characters (\$, \!) are used to prevent interpretation in a double-quoted string.
+  # - A escape sequence (`\$`) is used to prevent special interpretation within double-quoted strings.
+  # - In interactive shells, `!` must be escaped (`\!`) to prevent it from being interpreted as history expansion.
+  #   However, this script is executed in non-interactive contexts via `source`, so no escaping is required.
   case "$1" in
     'stp'|'short-tilde-plain')
       PROMPT="${H_PROMPT_HOSTNAME:-%m}:%~%# "
@@ -125,20 +127,20 @@ h_set_prompt_zsh() {
       PROMPT="%n@${H_PROMPT_HOSTNAME:-%m}:%~%# "
       ;;
     'ltc'|'long-tilde-color')
-      PROMPT="%(\!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%~%# "
+      PROMPT="%(!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%~%# "
       ;;
     'lap'|'long-absolute-plain')
       PROMPT="%n@${H_PROMPT_HOSTNAME:-%m}:%d%# "
       ;;
     'lac'|'long-absolute-color')
-      PROMPT="%(\!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%d%# "
+      PROMPT="%(!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%d%# "
       ;;
     'lac2'|'long-absolute-color2')
       setopt 'promptsubst'
       if h_is_gnu_grep; then # GNU grep (Linux default)
-        PROMPT="%(\!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%{\$(pwd | GREP_COLORS=ms=33 grep --color=always /)%\${#PWD}G%}%(\!.%F{red}.)%#%f "
+        PROMPT="%(!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%{\$(pwd | GREP_COLORS=ms=33 grep --color=always /)%\${#PWD}G%}%(!.%F{red}.)%#%f "
       else # BSD grep (macOS default)
-        PROMPT="%(\!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%{\$(pwd | GREP_COLOR=33 grep --color=always /)%\${#PWD}G%}%(\!.%F{red}.)%#%f "
+        PROMPT="%(!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%{\$(pwd | GREP_COLOR=33 grep --color=always /)%\${#PWD}G%}%(!.%F{red}.)%#%f "
       fi
       ;;
     *)
