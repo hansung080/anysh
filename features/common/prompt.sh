@@ -55,7 +55,7 @@ h_set_prompt_help() {
   h_echo '    plain     Plain output (no color)'
   h_echo '    color     Colored output'
   h_echo
-  h_echo '  - H_PROMPT_HOSTNAME overrides the default <hostname> in the prompt if set (e.g. H_PROMPT_HOSTNAME=local).'
+  h_echo "  - H_PROMPT_HOSTNAME overrides the default <hostname> in the prompt if set (e.g. H_PROMPT_HOSTNAME='local')."
   h_echo "  - The prompt suffix is '$' for Bash, '%' for Zsh, and '#' for root."
 }
 
