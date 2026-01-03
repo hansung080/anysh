@@ -222,3 +222,10 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,intellij+all,visualstudiocode,sublimetext
+
+# Added by hansung080
+
+# Test shell
+test.sh
+
+# End of hansung080
