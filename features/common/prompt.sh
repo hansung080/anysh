@@ -18,15 +18,15 @@ h_on_source_prompt() {
 
 h_prompt_username_color() {
   if is_root; then
-    h_echo -n "\[${H_RED}\]"
+    h_echo -n "\[$H_RED\]"
   else
-    h_echo -n "\[${H_YELLOW}\]"
+    h_echo -n "\[$H_YELLOW\]"
   fi
 }
 
 h_prompt_suffix_color() {
   if is_root; then
-    h_echo -n "\[${H_RED}\]"
+    h_echo -n "\[$H_RED\]"
   fi
 }
 
@@ -65,8 +65,8 @@ h_set_prompt_usage() {
 }
 
 h_set_prompt_bash() {
-  local reset="\[${H_RESET}\]"
-  local yellow="\[${H_YELLOW}\]"
+  local reset="\[$H_RESET\]"
+  local yellow="\[$H_YELLOW\]"
 
   # Escape sequences (`\$`, `\\`) are used to prevent special interpretation within double-quoted strings.
   case "$1" in
@@ -74,29 +74,29 @@ h_set_prompt_bash() {
       PS1="${H_PROMPT_HOSTNAME:-\h}:\w\\$ "
       ;;
     'stc'|'short-tilde-color')
-      PS1="${yellow}${H_PROMPT_HOSTNAME:-\h}${reset}:\w\\$ "
+      PS1="$yellow${H_PROMPT_HOSTNAME:-\h}$reset:\w\\$ "
       ;;
     'sap'|'short-absolute-plain')
       PS1="${H_PROMPT_HOSTNAME:-\h}:\${PWD}\\$ "
       ;;
     'sac'|'short-absolute-color')
-      PS1="${yellow}${H_PROMPT_HOSTNAME:-\h}${reset}:\${PWD}\\$ "
+      PS1="$yellow${H_PROMPT_HOSTNAME:-\h}$reset:\${PWD}\\$ "
       ;;
     'ltp'|'long-tilde-plain'|'default')
       PS1="\u@${H_PROMPT_HOSTNAME:-\h}:\w\\$ "
       ;;
     'ltc'|'long-tilde-color')
-      PS1="$(h_prompt_username_color)\u${reset}@${yellow}${H_PROMPT_HOSTNAME:-\h}${reset}:\w\\$ "
+      PS1="$(h_prompt_username_color)\u$reset@$yellow${H_PROMPT_HOSTNAME:-\h}$reset:\w\\$ "
       ;;
     'lap'|'long-absolute-plain')
       PS1="\u@${H_PROMPT_HOSTNAME:-\h}:\${PWD}\\$ "
       ;;
     'lac'|'long-absolute-color')
-      PS1="$(h_prompt_username_color)\u${reset}@${yellow}${H_PROMPT_HOSTNAME:-\h}${reset}:\${PWD}\\$ "
+      PS1="$(h_prompt_username_color)\u$reset@$yellow${H_PROMPT_HOSTNAME:-\h}$reset:\${PWD}\\$ "
       ;;
     'lac2'|'long-absolute-color2')
       # Bash cannot colorize $PWD: no prompt-length adjustment for ANSI SGR sequences, unlike Zsh (%<length>G).
-      PS1="$(h_prompt_username_color)\u${reset}@${yellow}${H_PROMPT_HOSTNAME:-\h}${reset}:\${PWD}$(h_prompt_suffix_color)\\$\[${H_RESET}\] "
+      PS1="$(h_prompt_username_color)\u$reset@$yellow${H_PROMPT_HOSTNAME:-\h}$reset:\${PWD}$(h_prompt_suffix_color)\\$\[$H_RESET\] "
       ;;
     *)
       h_error -t "invalid format: $1"
@@ -136,7 +136,7 @@ h_set_prompt_zsh() {
       PROMPT="%(!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%d%# "
       ;;
     'lac2'|'long-absolute-color2')
-      setopt 'promptsubst'
+      setopt promptsubst
       if h_is_gnu_grep; then # GNU grep (Linux default)
         PROMPT="%(!.%F{red}.%F{yellow})%n%f@%F{yellow}${H_PROMPT_HOSTNAME:-%m}%f:%{\$(pwd | GREP_COLORS=ms=33 grep --color=always /)%\${#PWD}G%}%(!.%F{red}.)%#%f "
       else # BSD grep (macOS default)

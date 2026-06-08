@@ -6,12 +6,12 @@ S_YELLOW=$'\033[0;33m'
 S_BLUE=$'\033[0;34m'
 
 warn() {
-  [[ "$1" == '-t' ]] && { >&2 echo -n "${S_YELLOW}warning${S_RESET}: "; shift; }
+  [[ "$1" == '-t' ]] && { >&2 echo -n "${S_YELLOW}warning$S_RESET: "; shift; }
   >&2 echo "$@"
 }
 
 error() {
-  [[ "$1" == '-t' ]] && { >&2 echo -n "${S_RED_BOLD}error${S_RESET}: "; shift; }
+  [[ "$1" == '-t' ]] && { >&2 echo -n "${S_RED_BOLD}error$S_RESET: "; shift; }
   >&2 echo "$@"
 }
 

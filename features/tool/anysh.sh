@@ -166,7 +166,7 @@ h_anysh_get_all_features_remote() {
       fi
     done
   done < <(h_anysh_download 'list.txt')
-  h_unsetopt_if_set 'globsubst' "$globsubst_ret"
+  h_unsetopt_if_set globsubst "$globsubst_ret"
 }
 
 h_anysh_get_deps() {

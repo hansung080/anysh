@@ -182,7 +182,7 @@ h_dirs() {
 h_popd() {
   if h_is_zsh; then
     local sign='+'
-    h_is_setopt 'pushdminus' && sign='-'
+    h_is_setopt pushdminus && sign='-'
     if ! { [ $# -eq 0 ] || [[ $# -eq 1 && "$1" == "${sign}0" ]] || [[ $# -eq 1 && "$1" == '-q' ]] || [[ $# -eq 2 && "$1" == '-q' && "$2" == "${sign}0" ]]; }; then
       local OLDPWD
     fi
@@ -242,7 +242,7 @@ h_cd_usage() {
 cd() {
   local args=() arg optarg='' z=0 sign='+'
   h_is_zsh && z=1
-  h_is_setopt 'pushdminus' && sign='-'
+  h_is_setopt pushdminus && sign='-'
 
   while (($# > 0)); do
     case "$1" in

@@ -19,12 +19,13 @@ h_source_is_force() {
   [ -n "$H_SOURCE_FORCE" ]
 }
 
-# Execute features and their dependencies in the current shell environment (dependencies first and non-duplicate executions).
+# Execute features and their dependencies in the current shell environment
+# (dependencies first and non-duplicate executions).
 h_source() {
   h_source_is_enable || return 0
 
   if (($# == 0)); then
-    echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: arguments required"
+    echo >&2 -e "${__H_RED_BOLD}error$__H_RESET: h_source: arguments required"
     return 1
   fi
 
@@ -45,7 +46,7 @@ h_source() {
         continue
       fi
       if [[ "${base:0:1}" == '.' ]]; then
-        echo >&2 -e "${__H_YELLOW}warning${__H_RESET}: h_source: $fname is off"
+        echo >&2 -e "${__H_YELLOW}warning$__H_RESET: h_source: $fname is off"
         ret=1
         continue
       fi
@@ -53,13 +54,13 @@ h_source() {
 
     source "$feature" && h_register_on_source "$fname"
     off=''; [[ "${base:0:1}" == '.' ]] && off=' (off)'
-    __h_is_verbose && echo -e "${__H_GREEN}debug${__H_RESET}: h_source: $fname just sourced$off: $feature"
+    __h_is_verbose && echo -e "${__H_GREEN}debug$__H_RESET: h_source: $fname just sourced$off: $feature"
   done < <(find "$__H_FEATURES_DIR" -type f \( "${opts[@]:1}" \) -print0)
   h_call_on_source
 
   if [ -z "$found" ]; then
     local IFS=' '
-    echo >&2 -e "${__H_RED_BOLD}error${__H_RESET}: h_source: no features found: $*"
+    echo >&2 -e "${__H_RED_BOLD}error$__H_RESET: h_source: no features found: $*"
     return 1
   fi
   return "$ret"

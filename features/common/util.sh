@@ -1,11 +1,15 @@
 H_RESET=$'\033[0m'
+H_BOLD=$'\033[1m'
 H_BLACK=$'\033[0;30m'
 H_BLACK_BOLD=$'\033[1;30m'
 H_RED=$'\033[0;31m'
 H_RED_BOLD=$'\033[1;31m'
 H_GREEN=$'\033[0;32m'
+H_GREEN_BOLD=$'\033[1;32m'
 H_YELLOW=$'\033[0;33m'
+H_YELLOW_BOLD=$'\033[1;33m'
 H_BLUE=$'\033[0;34m'
+H_BLUE_BOLD=$'\033[1;34m'
 
 H_WIFI_DEFAULT_NETWORK='en0'
 
@@ -15,25 +19,34 @@ h_is_util_sourced() {
 
 h_on_unset_util() {
   unset -v H_RESET
+  unset -v H_BOLD
   unset -v H_BLACK
   unset -v H_BLACK_BOLD
   unset -v H_RED
   unset -v H_RED_BOLD
   unset -v H_GREEN
+  unset -v H_GREEN_BOLD
   unset -v H_YELLOW
+  unset -v H_YELLOW_BOLD
   unset -v H_BLUE
+  unset -v H_BLUE_BOLD
+
   unset -v H_WIFI_DEFAULT_NETWORK
 }
 
 h_style() {
-  h_echo "H_RESET"
-  h_echo "${H_BLACK}H_BLACK${H_RESET}"
-  h_echo "${H_BLACK_BOLD}H_BLACK_BOLD${H_RESET}"
-  h_echo "${H_RED}H_RED${H_RESET}"
-  h_echo "${H_RED_BOLD}H_RED_BOLD${H_RESET}"
-  h_echo "${H_GREEN}H_GREEN${H_RESET}"
-  h_echo "${H_YELLOW}H_YELLOW${H_RESET}"
-  h_echo "${H_BLUE}H_BLUE${H_RESET}"
+  h_echo "${H_RESET}H_RESET"
+  h_echo "${H_BOLD}H_BOLD$H_RESET"
+  h_echo "${H_BLACK}H_BLACK$H_RESET"
+  h_echo "${H_BLACK_BOLD}H_BLACK_BOLD$H_RESET"
+  h_echo "${H_RED}H_RED$H_RESET"
+  h_echo "${H_RED_BOLD}H_RED_BOLD$H_RESET"
+  h_echo "${H_GREEN}H_GREEN$H_RESET"
+  h_echo "${H_GREEN_BOLD}H_GREEN_BOLD$H_RESET"
+  h_echo "${H_YELLOW}H_YELLOW$H_RESET"
+  h_echo "${H_YELLOW_BOLD}H_YELLOW_BOLD$H_RESET"
+  h_echo "${H_BLUE}H_BLUE$H_RESET"
+  h_echo "${H_BLUE_BOLD}H_BLUE_BOLD$H_RESET"
 }
 
 h_is_verbose() {
@@ -83,22 +96,22 @@ h_echo() {
 
 h_debug() {
   h_is_verbose || return 0
-  [[ "$1" == '-t' ]] && { h_echo -n "${H_GREEN}debug${H_RESET}: "; shift; }
+  [[ "$1" == '-t' ]] && { h_echo -n "${H_GREEN}debug$H_RESET: "; shift; }
   h_echo "$@"
 }
 
 h_info() {
-  [[ "$1" == '-t' ]] && { h_echo -n "${H_BLUE}info${H_RESET}: "; shift; }
+  [[ "$1" == '-t' ]] && { h_echo -n "${H_BLUE}info$H_RESET: "; shift; }
   h_echo "$@"
 }
 
 h_warn() {
-  [[ "$1" == '-t' ]] && { >&2 h_echo -n "${H_YELLOW}warning${H_RESET}: "; shift; }
+  [[ "$1" == '-t' ]] && { >&2 h_echo -n "${H_YELLOW}warning$H_RESET: "; shift; }
   >&2 h_echo "$@"
 }
 
 h_error() {
-  [[ "$1" == '-t' ]] && { >&2 h_echo -n "${H_RED_BOLD}error${H_RESET}: "; shift; }
+  [[ "$1" == '-t' ]] && { >&2 h_echo -n "${H_RED_BOLD}error$H_RESET: "; shift; }
   >&2 h_echo "$@"
 }
 
@@ -141,7 +154,7 @@ h_is_interactive_shell() {
 
 h_is_login_shell() {
   if h_is_bash; then
-    shopt -q 'login_shell'
+    shopt -q login_shell
   elif h_is_zsh; then
     setopt | grep '^login$' > /dev/null
   else
@@ -442,7 +455,7 @@ h_networksetup() {
 h_ssid() {
   local network="${1:-$H_WIFI_DEFAULT_NETWORK}"
   (
-    set -o 'pipefail'
+    set -o pipefail
     h_networksetup -getairportnetwork "$network" | awk '{ print $NF }'
   )
 }
