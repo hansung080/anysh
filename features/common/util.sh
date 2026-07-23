@@ -11,8 +11,6 @@ H_YELLOW_BOLD=$'\033[1;33m'
 H_BLUE=$'\033[0;34m'
 H_BLUE_BOLD=$'\033[1;34m'
 
-H_WIFI_DEFAULT_NETWORK='en0'
-
 h_is_util_sourced() {
   return 0
 }
@@ -30,8 +28,6 @@ h_on_unset_util() {
   unset -v H_YELLOW_BOLD
   unset -v H_BLUE
   unset -v H_BLUE_BOLD
-
-  unset -v H_WIFI_DEFAULT_NETWORK
 }
 
 h_style() {

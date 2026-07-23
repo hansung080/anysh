@@ -2,6 +2,16 @@
 source "$H_ANYSH_DIR/hidden/source.sh"
 h_source 'util'
 
+: "${H_WIFI_INTERFACE:=en0}"
+
+h_is_network_sourced() {
+  return 0
+}
+
+h_on_unset_network() {
+  unset -v H_WIFI_INTERFACE
+}
+
 h_networksetup() {
   h_is_mac || { h_error -t 'supported only on macOS'; return 1; }
 
@@ -13,19 +23,19 @@ h_networksetup() {
 }
 
 h_ssid() {
-  local network="${1:-$H_WIFI_DEFAULT_NETWORK}"
+  local interface="${1:-$H_WIFI_INTERFACE}"
 
   # This code does not work unless Wi-Fi is connected.
   # ```
   # (
   #   set -o pipefail
-  #   h_networksetup -getairportnetwork "$network" | awk '{ print $NF }'
+  #   h_networksetup -getairportnetwork "$interface" | awk '{ print $NF }'
   # )
   # ```
 
   # NOTE: `networksetup -getairportnetwork` no longer works on recent versions of macOS (e.g. Tahoe).
   local output
-  output="$(h_networksetup -getairportnetwork "$network")"
+  output="$(h_networksetup -getairportnetwork "$interface")"
   if [[ "$output" == 'Current Wi-Fi Network: '* ]]; then
     h_echo "${output#Current Wi-Fi Network: }"
   else

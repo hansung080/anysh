@@ -5,9 +5,9 @@ alias/help.sh util 9c11c81afc66b71d8f5dd900f352b4f1
 ext/make.sh util b3632f817e98cf66d37710867f5e076b
 ext/getopt.sh util d88dbcbda9ab1754dc349454a173a98b
 ext/cd.sh util b71cddf960fc21c2567439402681c3bf
-common/network.sh util 0b317328fdb98a11f916668540e3b9a0
+common/network.sh util 0139d4f2bb144abeef4d0c475e7341ad
 common/prompt.sh util 8887f33ba07669d67d44c979461331f7
 common/read.sh util 3b36ba946cb98467b1d5f144ef727033
 common/path.sh util f56a06df71df9379bbf5292761dd7fbd
-common/util.sh - 086b77103db6147056e754ee67373aff
+common/util.sh - c708e7fe9e10d4e20b59010e5d6464bb
 tool/anysh.sh util,getopt 106dfa0c76f12265901e2c531ade21e3
