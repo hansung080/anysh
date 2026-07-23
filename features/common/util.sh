@@ -444,22 +444,6 @@ h_check_optarg_number() {
   return 0
 }
 
-h_networksetup() {
-  if networksetup "$@" &> /dev/null; then
-    networksetup "$@"
-  else
-    networksetup "$@" >&2
-  fi
-}
-
-h_ssid() {
-  local network="${1:-$H_WIFI_DEFAULT_NETWORK}"
-  (
-    set -o pipefail
-    h_networksetup -getairportnetwork "$network" | awk '{ print $NF }'
-  )
-}
-
 h_is_gnu_grep() {
   grep -P '.' <(echo 'x') &> /dev/null
 }
